@@ -1,0 +1,49 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+
+// CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*", // Allow all origins
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Content-Type": "application/json"
+};
+
+// Initialize the Supabase client
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_ANON_KEY")!
+);
+
+export default async (req: Request) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders, status: 204 });
+  }
+
+  const { authUid } = await req.json(); // Extracting the UID from the body
+
+  if (!authUid) {
+    return new Response(
+      JSON.stringify({ message: "Security officer UID is required." }), 
+      { status: 400, headers: corsHeaders }
+    );
+  }
+
+  // Delete the security officer's active shift (log out)
+  const { data: _data, error } = await supabase
+    .from("active_shifts")
+    .delete()
+    .eq("security_id", authUid);
+
+  if (error) {
+    return new Response(
+      JSON.stringify({ message: "Error logging out security officer." }), 
+      { status: 500, headers: corsHeaders }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ message: "Security officer logged out successfully." }),
+    { status: 200, headers: corsHeaders }
+  );
+};

@@ -1,0 +1,138 @@
+import 'package:qr_flutter/qr_flutter.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+
+class QRCodeGenerator {
+  static Future<File> generateQRCode(String data, String fileName) async {
+    final qr = QrPainter(
+      data: data,
+      version: QrVersions.auto,
+      gapless: false,
+      color: Colors.black,
+      emptyColor: Colors.white,
+    );
+
+    final painter = qr;
+    final pic = await painter.toPicture(200);
+    final img = await pic.toImage(200, 200);
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    final pngBytes = byteData!.buffer.asUint8List();
+
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$fileName.png');
+    await file.writeAsBytes(pngBytes);
+
+    return file;
+  }
+
+  // Generate QR code as PDF
+  static Future<File> generateQRCodePDF(String data, String fileName, String title) async {
+    // First generate the QR code image
+    final qrFile = await generateQRCode(data, fileName);
+    final qrImage = await qrFile.readAsBytes();
+    
+    // Create a PDF document
+    final pdf = pw.Document();
+    
+    // Add a page with the QR code
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Center(
+            child: pw.Column(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Text(
+                  title,
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 20),
+                pw.Image(
+                  pw.MemoryImage(qrImage),
+                  width: 200,
+                  height: 200,
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'Scan this QR code',
+                  style: pw.TextStyle(fontSize: 16),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  data,
+                  style: pw.TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+    
+    // Save the PDF
+    final directory = await getApplicationDocumentsDirectory();
+    final pdfFile = File('${directory.path}/$fileName.pdf');
+    await pdfFile.writeAsBytes(await pdf.save());
+    
+    return pdfFile;
+  }
+
+  // Generate Entry QR code (for visitor registration)
+  static Future<Map<String, File>> generateEntryQR() async {
+    final pngFile = await generateQRCode(
+      '/visitors/registration',
+      'entry_qr',
+    );
+    
+    final pdfFile = await generateQRCodePDF(
+      '/visitors/registration',
+      'entry_qr',
+      'Visitor Registration QR Code',
+    );
+    
+    return {
+      'png': pngFile,
+      'pdf': pdfFile,
+    };
+  }
+
+  // Generate Exit QR code (for visitor checkout)
+  static Future<Map<String, File>> generateExitQR() async {
+    final pngFile = await generateQRCode(
+      '/visitors/checkout',
+      'exit_qr',
+    );
+    
+    final pdfFile = await generateQRCodePDF(
+      '/visitors/checkout',
+      'exit_qr',
+      'Visitor Checkout QR Code',
+    );
+    
+    return {
+      'png': pngFile,
+      'pdf': pdfFile,
+    };
+  }
+  
+  // Print PDF file
+  static Future<void> printPDF(File pdfFile) async {
+    await Printing.layoutPdf(
+      onLayout: (_) async => pdfFile.readAsBytes(),
+    );
+  }
+  
+  // Share PDF file
+  static Future<void> sharePDF(File pdfFile) async {
+    await Printing.sharePdf(bytes: await pdfFile.readAsBytes(), filename: pdfFile.path.split('/').last);
+  }
+}
