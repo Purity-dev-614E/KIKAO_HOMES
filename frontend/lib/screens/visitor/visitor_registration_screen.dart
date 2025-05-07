@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/models/visit_sessions.dart';
 import '../../core/providers/visit_provider.dart';
 import '../../core/providers/authProvider.dart';
+import 'package:flutter/services.dart';
 
 class VisitorRegistrationScreen extends StatefulWidget {
   const VisitorRegistrationScreen({super.key});
@@ -121,51 +122,82 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFE5E0D8),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-              const Text(
-                'Visitor Registration',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A6B5D),
+              IconButton(
+                icon: Icon(Icons.arrow_back, color: colorScheme.primary),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Register Visitor',
+                style: theme.textTheme.displayMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Please fill in the visitor details below',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
-              const SizedBox(height: 30),
-              _buildTextField('Full Name', Icons.person, _nameController),
-              const SizedBox(height: 16),
-              _buildTextField('National ID', Icons.credit_card, _nationalIdController),
-              const SizedBox(height: 16),
-              _buildTextField('Phone Number', Icons.phone, _phoneController),
-              const SizedBox(height: 16),
-              _buildTextField('Unit Number', Icons.home, _unitNumberController),
-              const SizedBox(height: 30),
-              Center(
+              const SizedBox(height: 32),
+              _buildTextField('Full Name', Icons.person_outline, _nameController, textInputAction: TextInputAction.next),
+              const SizedBox(height: 20),
+              _buildTextField('National ID', Icons.credit_card_outlined, _nationalIdController, 
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: 20),
+              _buildTextField('Phone Number', Icons.phone_outlined, _phoneController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: 20),
+              _buildTextField('Unit Number', Icons.home_outlined, _unitNumberController,
+                textInputAction: TextInputAction.done,
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _registerVisit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCC7357),
-                    minimumSize: const Size(200, 50),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Submit',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Register Visitor',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -173,38 +205,44 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
     );
   }
 
-  Widget _buildTextField(String label, IconData icon, TextEditingController controller) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please fill in $label';
-          }
-          return null;
-        },
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          border: InputBorder.none,
-          hintText: label,
-          prefixIcon: Icon(icon, color: const Color(0xFF4A6B5D)),
-          hintStyle: const TextStyle(
-            color: Color(0xFF4A6B5D),
-            fontSize: 16,
+  Widget _buildTextField(
+    String label,
+    IconData icon,
+    TextEditingController controller, {
+    TextInputType? keyboardType,
+    TextInputAction? textInputAction,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    final theme = Theme.of(context);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.8),
+            fontWeight: FontWeight.w500,
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          inputFormatters: inputFormatters,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: theme.colorScheme.primary),
+            hintText: 'Enter $label',
+            hintStyle: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.4),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

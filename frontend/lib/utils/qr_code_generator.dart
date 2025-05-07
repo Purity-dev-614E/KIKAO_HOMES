@@ -128,12 +128,12 @@ class QRCodeGenerator {
   // Generate Entry QR code (for visitor registration)
   static Future<Map<String, dynamic>> generateEntryQR() async {
     final pngFile = await generateQRCode(
-      '/visitors/registration',
+      'https://kikaohomes.vercel.app/visitors/registration',
       'entry_qr',
     );
     
     final pdfFile = await generateQRCodePDF(
-      '/visitors/registration',
+      'https://kikaohomes.vercel.app/visitors/registration',
       'entry_qr',
       'Visitor Registration QR Code',
     );
@@ -147,12 +147,12 @@ class QRCodeGenerator {
   // Generate Exit QR code (for visitor checkout)
   static Future<Map<String, dynamic>> generateExitQR() async {
     final pngFile = await generateQRCode(
-      '/visitors/checkout',
+      'https://kikaohomes.vercel.app/visitors/checkout',
       'exit_qr',
     );
     
     final pdfFile = await generateQRCodePDF(
-      '/visitors/checkout',
+      'https://kikaohomes.vercel.app/visitors/checkout',
       'exit_qr',
       'Visitor Checkout QR Code',
     );

@@ -21,7 +21,6 @@ import 'package:kikao_homes/screens/admin/qr_management_screen.dart';
 import 'package:kikao_homes/supabase_env.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:kikao_homes/firebase_options.dart';
-import 'core/constants/theme_constants.dart';
 import 'core/services/notification_service.dart';
 import 'core/providers/authProvider.dart';
 import 'core/providers/settings_provider.dart';
@@ -71,107 +70,175 @@ class MyApp extends StatelessWidget {
         title: 'Kikao Homes',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primaryColor: const Color(0xFF4A6B5D),
-          scaffoldBackgroundColor: const Color(0xFFE5E0D8),
+          useMaterial3: true,
+          primaryColor: const Color(0xFF2C5E5B),
+          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
           colorScheme: ColorScheme.light(
-            primary: const Color(0xFF4A6B5D),
-            secondary: const Color(0xFFE5E0D8),
-            tertiary: const Color(0xFFCC7357),
-            onPrimary: Colors.white,
-            onSecondary: const Color(0xFF2D2D2D),
-            onTertiary: Colors.white,
-            background: const Color(0xFFE5E0D8),
+            primary: const Color(0xFF2C5E5B),
+            primaryContainer: const Color(0xFF3D7A78),
+            secondary: const Color(0xFFF4A261),
+            tertiary: const Color(0xFFE76F51),
             surface: Colors.white,
+            background: const Color(0xFFF8F9FA),
+            onPrimary: Colors.white,
+            onSecondary: Colors.white,
+            onSurface: const Color(0xFF212529),
+            onBackground: const Color(0xFF212529),
+            error: const Color(0xFFE76F51),
+            onError: Colors.white,
+            brightness: Brightness.light,
           ),
           textTheme: const TextTheme(
             displayLarge: TextStyle(
               fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF4A6B5D),
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF212529),
+              letterSpacing: -0.5,
             ),
             displayMedium: TextStyle(
               fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF4A6B5D),
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF2C5E5B),
+              letterSpacing: -0.3,
+            ),
+            titleLarge: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2C5E5B),
             ),
             bodyLarge: TextStyle(
               fontSize: 16,
-              color: Color(0xFF2D2D2D),
+              color: Color(0xFF495057),
+              height: 1.6,
             ),
             bodyMedium: TextStyle(
               fontSize: 14,
-              color: Color(0xFF2D2D2D),
+              color: Color(0xFF6C757D),
+              height: 1.5,
             ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFCC7357),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+            labelLarge: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 0.5,
             ),
           ),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
             fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppTheme.secondaryColor),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppTheme.secondaryColor),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF2C5E5B), width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE76F51), width: 1.5),
+            ),
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 16),
+            labelStyle: const TextStyle(color: Color(0xFF6C757D)),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2C5E5B),
+              foregroundColor: Colors.white,
+              elevation: 2,
+              shadowColor: Colors.black.withOpacity(0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
           cardTheme: CardTheme(
             elevation: 2,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
+            color: Colors.white,
+            shadowColor: Colors.black.withOpacity(0.1),
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            centerTitle: true,
+            titleTextStyle: TextStyle(
+              color: Color(0xFF212529),
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+            iconTheme: const IconThemeData(color: Color(0xFF2C5E5B)),
           ),
         ),
-        initialRoute: '/visitors/registration',
-        routes: {
-          '/': (context) => const LandingScreen(),
-          '/login': (context) => const LoginScreen(),
-          '/register': (context) => const RegisterScreen(),
-          '/set_password': (context) => const SetPasswordScreen(),
-          '/password_reset': (context) => const PasswordResetScreen(),
-          '/profile': (context) => const ProfileScreen(),
-          '/security/dashboard': (context) => const SecurityDashboardScreen(),
-
-
-          '/admin_dashboard': (context) => const DashboardScreen(),
-          '/admin/visitors': (context) => const VisitorsScreen(),
-          '/admin/residents': (context) => const ResidentsScreen(),
-          '/admin/settings': (context) => const SettingsScreen(),
-          '/user_management': (context) => const UserManagementScreen(),
-          '/residents': (context) => const ResidentsScreen(),
-          '/visitors': (context) => const VisitorsScreen(),
-          '/admin/qr-management': (context) => const QRManagementScreen(),
-
-          '/visitor_history': (context) => const VisitorHistoryScreen(),
-          '/visitor_approval': (context) {
-            // Get the visitor data from the route arguments
-            final Map<String, dynamic>? args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-            if (args == null || !args.containsKey('visitorData')) {
-              return const Scaffold(
-                body: Center(child: Text('Visitor data is required')),
+        home: const AppRouter(),
+        onGenerateRoute: (settings) {
+          switch (settings.name) {
+            case '/':
+              return MaterialPageRoute(builder: (_) => const LandingScreen());
+            case '/login':
+              return MaterialPageRoute(builder: (_) => const LoginScreen());
+            case '/register':
+              return MaterialPageRoute(builder: (_) => const RegisterScreen());
+            case '/set_password':
+              return MaterialPageRoute(builder: (_) => const SetPasswordScreen());
+            case '/password_reset':
+              return MaterialPageRoute(builder: (_) => const PasswordResetScreen());
+            case '/profile':
+              return MaterialPageRoute(builder: (_) => const ProfileScreen());
+            case '/security/dashboard':
+              return MaterialPageRoute(builder: (_) => const SecurityDashboardScreen());
+            case '/admin_dashboard':
+              return MaterialPageRoute(builder: (_) => const DashboardScreen());
+            case '/admin/visitors':
+              return MaterialPageRoute(builder: (_) => const VisitorsScreen());
+            case '/admin/residents':
+              return MaterialPageRoute(builder: (_) => const ResidentsScreen());
+            case '/admin/settings':
+              return MaterialPageRoute(builder: (_) => const SettingsScreen());
+            case '/user_management':
+              return MaterialPageRoute(builder: (_) => const UserManagementScreen());
+            case '/residents':
+              return MaterialPageRoute(builder: (_) => const ResidentsScreen());
+            case '/visitors':
+              return MaterialPageRoute(builder: (_) => const VisitorsScreen());
+            case '/admin/qr-management':
+              return MaterialPageRoute(builder: (_) => const QRManagementScreen());
+            case '/visitor_history':
+              return MaterialPageRoute(builder: (_) => const VisitorHistoryScreen());
+            case '/visitor_approval':
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args == null || !args.containsKey('visitorData')) {
+                return MaterialPageRoute(
+                  builder: (_) => const Scaffold(
+                    body: Center(child: Text('Visitor data is required')),
+                  ),
+                );
+              }
+              return MaterialPageRoute(
+                builder: (_) => VisitorApproval(visitorData: args['visitorData']),
               );
-            }
-            return VisitorApproval(visitorData: args['visitorData']);
-          },
-
-
-          '/visitors/registration': (context) => const VisitorRegistrationScreen(),
-          '/visitors/checkout': (context) => const VisitorCheckoutScreen(),
-
+            case '/visitors/registration':
+              return MaterialPageRoute(builder: (_) => const VisitorRegistrationScreen());
+            case '/visitors/checkout':
+              return MaterialPageRoute(builder: (_) => const VisitorCheckoutScreen());
+            default:
+              return MaterialPageRoute(builder: (_) => const Scaffold(
+                body: Center(child: Text('Page not found')),
+              ));
+          }
         },
       ),
     );
