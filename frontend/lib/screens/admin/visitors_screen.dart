@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'package:kikao_homes/core/models/visit_sessions.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class VisitorsScreen extends StatefulWidget {
   const VisitorsScreen({super.key});
@@ -10,41 +12,29 @@ class VisitorsScreen extends StatefulWidget {
 }
 
 class _VisitorsScreenState extends State<VisitorsScreen> {
-  final List<Map<String, dynamic>> _visitors = [
-    {
-      'name': 'John Doe',
-      'status': 'Approved',
-      'unit': 'A101',
-      'timeIn': '2025-04-25 14:30',
-      'timeOut': '2025-04-25 15:45',
-      'purpose': 'Delivery',
-    },
-    {
-      'name': 'Jane Smith',
-      'status': 'Pending',
-      'unit': 'B202',
-      'timeIn': '2025-04-26 15:00',
-      'timeOut': '',
-      'purpose': 'Visit',
-    },
-    {
-      'name': 'Bob Johnson',
-      'status': 'Approved',
-      'unit': 'C303',
-      'timeIn': '2025-03-15 10:00',
-      'timeOut': '2025-03-15 11:30',
-      'purpose': 'Meeting',
-    },
-    {
-      'name': 'Alice Brown',
-      'status': 'Approved',
-      'unit': 'D404',
-      'timeIn': '2025-02-20 16:00',
-      'timeOut': '2025-02-20 17:00',
-      'purpose': 'Delivery',
-    },
-    // Add more visitors as needed
-  ];
+  final List<Map<String, dynamic>> _visitors = [];
+  
+  @override
+  void initState() {
+    super.initState();
+    _fetchVisitors();
+  }
+
+  Future<void> _fetchVisitors() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('visit_sessions')
+          .select('id, visitor_name, unit_number, check_in_at, check_out_at, visitor_phone, status, national_id');
+
+      setState(() {
+        _visitors.clear();
+        _visitors.addAll((response as List).map((json) => VisitSessions.fromJson(json).toJson()));
+      });
+    } catch (e) {
+      // Handle error
+      print('Error fetching visitors: $e');
+    }
+  }
 
   String _selectedFilter = 'Week';
 
@@ -72,7 +62,10 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
     }
 
     return _visitors.where((visit) {
-      final visitDate = DateTime.parse(visit['timeIn'].toString().split(' ')[0]);
+      // Using check_in_at field instead of timeIn
+      if (visit['check_in_at'] == null) return false;
+      
+      final visitDate = DateTime.parse(visit['check_in_at'].toString().split(' ')[0]);
       return visitDate.isAfter(startDate) && visitDate.isBefore(endDate.add(const Duration(days: 1)));
     }).toList();
   }
@@ -163,40 +156,45 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
                 itemCount: filteredVisits.length,
                 itemBuilder: (context, index) {
                   final visit = filteredVisits[index];
-                  final timeIn = DateTime.parse(visit['timeIn'].toString());
-                  final timeOut = visit['timeOut'].isNotEmpty
-                      ? DateTime.parse(visit['timeOut'].toString())
+                  final timeIn = visit['check_in_at'] != null 
+                      ? DateTime.parse(visit['check_in_at'].toString())
+                      : DateTime.now();
+                  final timeOut = visit['check_out_at'] != null && visit['check_out_at'].toString().isNotEmpty
+                      ? DateTime.parse(visit['check_out_at'].toString())
                       : null;
 
                   return Card(
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: _getStatusColor(visit['status']),
+                        backgroundColor: _getStatusColor(visit['status'] ?? 'pending'),
                         child: Text(
-                          visit['name'][0],
+                          visit['visitor_name'] != null && visit['visitor_name'].toString().isNotEmpty
+                              ? visit['visitor_name'][0]
+                              : '?',
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
-                      title: Text(visit['name']),
+                      title: Text(visit['visitor_name'] ?? 'Unknown'),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(visit['unit']),
+                          Text(visit['unit_number'] ?? 'No unit'),
                           Text(
                             '${DateFormat('MMM d, yyyy').format(timeIn)} at ${DateFormat('HH:mm').format(timeIn)}'
                             '${timeOut != null ? ' - ${DateFormat('HH:mm').format(timeOut)}' : ''}',
                           ),
-                          Text(visit['purpose']),
+                          if (visit['visitor_phone'] != null)
+                            Text(visit['visitor_phone']),
                         ],
                       ),
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(visit['status']),
+                          color: _getStatusColor(visit['status'] ?? 'pending'),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          visit['status'],
+                          visit['status'] ?? 'Pending',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import '../../utils/qr_code_generator.dart';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:printing/printing.dart';
+import '../../utils/qr_code_generator_web.dart';
 
 class QRManagementScreen extends StatefulWidget {
   const QRManagementScreen({super.key});
@@ -12,8 +13,8 @@ class QRManagementScreen extends StatefulWidget {
 
 class _QRManagementScreenState extends State<QRManagementScreen> {
   bool _isLoading = false;
-  File? _entryQRPdf;
-  File? _exitQRPdf;
+  Uint8List? _entryQRPdf;
+  Uint8List? _exitQRPdf;
   String? _errorMessage;
 
   @override
@@ -29,8 +30,8 @@ class _QRManagementScreenState extends State<QRManagementScreen> {
 
     try {
       // Generate QR codes
-      final entryQRFiles = await QRCodeGenerator.generateEntryQR();
-      final exitQRFiles = await QRCodeGenerator.generateExitQR();
+      final entryQRFiles = await QRCodeGeneratorWeb.generateEntryQR();
+      final exitQRFiles = await QRCodeGeneratorWeb.generateExitQR();
       
       setState(() {
         _entryQRPdf = entryQRFiles['pdf'];
@@ -57,9 +58,9 @@ class _QRManagementScreenState extends State<QRManagementScreen> {
     }
   }
 
-  Future<void> _printPDF(File pdfFile) async {
+  Future<void> _printPDF(Uint8List pdfBytes) async {
     try {
-      await QRCodeGenerator.printPDF(pdfFile);
+      await QRCodeGeneratorWeb.printPDF(pdfBytes);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -69,9 +70,9 @@ class _QRManagementScreenState extends State<QRManagementScreen> {
     }
   }
 
-  Future<void> _sharePDF(File pdfFile) async {
+  Future<void> _sharePDF(Uint8List pdfBytes) async {
     try {
-      await QRCodeGenerator.sharePDF(pdfFile);
+      await QRCodeGeneratorWeb.sharePDF(pdfBytes, 'qr_code.pdf');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -144,13 +145,13 @@ class _QRManagementScreenState extends State<QRManagementScreen> {
                         _buildQRCodeCard(
                           title: 'Visitor Registration QR Code',
                           description: 'Visitors can scan this QR code to register their visit.',
-                          pdfFile: _entryQRPdf!,
+                          pdfBytes: _entryQRPdf!,
                         ),
                         const SizedBox(height: 16),
                         _buildQRCodeCard(
                           title: 'Visitor Checkout QR Code',
                           description: 'Visitors can scan this QR code to check out when leaving.',
-                          pdfFile: _exitQRPdf!,
+                          pdfBytes: _exitQRPdf!,
                         ),
                       ],
                     ],
@@ -162,7 +163,7 @@ class _QRManagementScreenState extends State<QRManagementScreen> {
   Widget _buildQRCodeCard({
     required String title,
     required String description,
-    required File pdfFile,
+    required Uint8List pdfBytes,
   }) {
     return Card(
       elevation: 4,
@@ -194,7 +195,7 @@ class _QRManagementScreenState extends State<QRManagementScreen> {
             SizedBox(
               height: 300,
               child: PdfPreview(
-                build: (format) => pdfFile.readAsBytesSync(),
+                build: (format) => pdfBytes,
                 allowPrinting: false,
                 allowSharing: false,
                 canChangeOrientation: false,
@@ -207,7 +208,7 @@ class _QRManagementScreenState extends State<QRManagementScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton.icon(
-                  onPressed: () => _printPDF(pdfFile),
+                  onPressed: () => _printPDF(pdfBytes),
                   icon: const Icon(Icons.print),
                   label: const Text('Print'),
                   style: OutlinedButton.styleFrom(
@@ -216,7 +217,7 @@ class _QRManagementScreenState extends State<QRManagementScreen> {
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton.icon(
-                  onPressed: () => _sharePDF(pdfFile),
+                  onPressed: () => _sharePDF(pdfBytes),
                   icon: const Icon(Icons.download),
                   label: const Text('Download'),
                   style: ElevatedButton.styleFrom(

@@ -63,17 +63,11 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
       log('VisitProvider obtained successfully');
 
       final visit = VisitSessions(
-        id: DateTime
-            .now()
-            .millisecondsSinceEpoch
-            .toString(),
         VisitorName: _nameController.text,
         visitorPhone: _phoneController.text,
         NationalID: _nationalIdController.text,
         unitNumber: _unitNumberController.text,
         status: 'pending',
-        SecurityId: '',
-        // Will be assigned later
         checkInTime: null,
         checkOutTime: null,
       );

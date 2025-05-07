@@ -4,6 +4,7 @@ class Profiles{
   final String role;
   final String unitNumber;
   final String phoneNumber;
+  final String email;
 
   Profiles({
     required this.id,
@@ -11,17 +12,19 @@ class Profiles{
     required this.role,
     required this.unitNumber,
     required this.phoneNumber,
+    required this.email
   });
 
-  factory Profiles.fromJson(Map<String, dynamic> json){
-    return Profiles(
-      id:json['id'],
-      fullName:json['full_name'],
-      role:json['role'],
-      unitNumber:json['unit_number'],
-      phoneNumber:json['phone']
-    );
-  }
+ factory Profiles.fromJson(Map<String, dynamic> json){
+   return Profiles(
+     id: json['id'] ?? '',
+     fullName: json['full_name'] ?? '',
+     role: json['role'] ?? '',
+     unitNumber: json['unit_number'] ?? '',
+     phoneNumber: json['phone'] ?? '',
+       email: json['email'] ?? ''
+   );
+ }
 
   Map<String,dynamic> toJson(){
     return {
@@ -29,7 +32,8 @@ class Profiles{
       'full_name':fullName,
       'role':role,
       'unit_number':unitNumber,
-      'phone':phoneNumber
+      'phone':phoneNumber,
+      'email':email
     };
   }
 

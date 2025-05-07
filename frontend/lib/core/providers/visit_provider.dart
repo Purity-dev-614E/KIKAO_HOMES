@@ -127,28 +127,26 @@ class VisitProvider with ChangeNotifier {
   }
 
   Future<void> notifySecurityApproval({
-    required String securityId,
     required String message,
   }) async{
     try {
       // Use NotificationService to send the notification
       await NotificationProvider().initializeNotifications(); // Ensure notifications are initialized
-      print('Sending notification to security $securityId: $message');
+      print('Sending notification to security $message');
     } catch (e) {
       print('Error sending push notification: $e');
     }
   }
 
-  Future<void> notifySecurityRejection({
-    required String securityId,
-    required String message,
-  }) async{
-    try {
-      // Use NotificationService to send the notification
-      await NotificationProvider().initializeNotifications(); // Ensure notifications are initialized
-      print('Sending notification to security $securityId: $message');
-    } catch (e) {
-      print('Error sending push notification: $e');
-    }
-  }
+ Future<void> notifySecurityRejection({
+   required String message,
+ }) async {
+   try {
+     // Use NotificationService to send the notification
+     await NotificationProvider().initializeNotifications(); // Ensure notifications are initialized
+     print('Sending notification: $message');
+   } catch (e) {
+     print('Error sending push notification: $e');
+   }
+ }
 }

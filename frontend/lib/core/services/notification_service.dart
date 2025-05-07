@@ -27,7 +27,7 @@ class NotificationService {
       try {
         // For web, we need to handle service worker registration errors
         token = await _fcm.getToken(
-          vapidKey: 'BLBolON8V8vTrHBLkIZMvHE_PqzXgKxJZ9vN-djyQwJvgFjK7xp9lDjPEInNXF0cuMQAYPSiCY3wYozOLnP-9Uw',
+          vapidKey: 'BBjW1phLyn2aZm_EIZ6jZrYrjku-bIjbYQ2vcl1PVlc8ZTgG-YsV0JXhLtuZgoYp9Zopeo4vPhAN-ZDpwXFUhrc',
         );
         print("Web FCM token: $token");
       } catch (e) {

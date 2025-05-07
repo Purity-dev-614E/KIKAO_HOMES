@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (role != null && role == 'admin') {
         Navigator.pushReplacementNamed(context, '/admin_dashboard');
       } else if(role != null && role == 'resident') {
-        Navigator.pushReplacementNamed(context, '/resident/visitor-history');
+        Navigator.pushReplacementNamed(context, '/visitor_history');
       } else if(role != null && role == 'security') {
         Navigator.pushReplacementNamed(context, '/security/dashboard');
       } else {
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/password-reset');
+                        Navigator.pushNamed(context, '/password_reset');
                       },
                       child: const Text(
                         'Forgot Password?',

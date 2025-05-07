@@ -70,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 icon: Icons.timer,
                                 title: 'Auto Check-out Time',
                                 subtitle: 'Set default check-out time for visitors',
-                                value: '18:00',
+                                value: '22:00',
                               ),
                               const Divider(),
                               _buildSettingItem(

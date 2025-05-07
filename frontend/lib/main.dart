@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:kikao_homes/screens/admin/settings.dart';
 import 'package:kikao_homes/screens/admin/user_management.dart';
+import 'package:kikao_homes/screens/resident/visitor_approval.dart';
 import 'package:provider/provider.dart';
 import 'package:kikao_homes/screens/auth/login_screen.dart';
 import 'package:kikao_homes/screens/auth/password_reset.dart';
@@ -135,7 +136,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        initialRoute: '/',
+        initialRoute: '/visitors/registration',
         routes: {
           '/': (context) => const LandingScreen(),
           '/login': (context) => const LoginScreen(),
@@ -144,8 +145,8 @@ class MyApp extends StatelessWidget {
           '/password_reset': (context) => const PasswordResetScreen(),
           '/profile': (context) => const ProfileScreen(),
           '/security/dashboard': (context) => const SecurityDashboardScreen(),
-          '/visitor_registration': (context) => const VisitorRegistrationScreen(),
-          '/visitor_checkout': (context) => const VisitorCheckoutScreen(),
+
+
           '/admin_dashboard': (context) => const DashboardScreen(),
           '/admin/visitors': (context) => const VisitorsScreen(),
           '/admin/residents': (context) => const ResidentsScreen(),
@@ -153,10 +154,24 @@ class MyApp extends StatelessWidget {
           '/user_management': (context) => const UserManagementScreen(),
           '/residents': (context) => const ResidentsScreen(),
           '/visitors': (context) => const VisitorsScreen(),
-          '/visitor_history': (context) => const VisitorHistoryScreen(),
-          '/kikaoHomes/visitors/registration': (context) => const VisitorRegistrationScreen(),
-          '/kikaoHomes/visitors/checkout': (context) => const VisitorCheckoutScreen(),
           '/admin/qr-management': (context) => const QRManagementScreen(),
+
+          '/visitor_history': (context) => const VisitorHistoryScreen(),
+          '/visitor_approval': (context) {
+            // Get the visitor data from the route arguments
+            final Map<String, dynamic>? args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+            if (args == null || !args.containsKey('visitorData')) {
+              return const Scaffold(
+                body: Center(child: Text('Visitor data is required')),
+              );
+            }
+            return VisitorApproval(visitorData: args['visitorData']);
+          },
+
+
+          '/visitors/registration': (context) => const VisitorRegistrationScreen(),
+          '/visitors/checkout': (context) => const VisitorCheckoutScreen(),
+
         },
       ),
     );

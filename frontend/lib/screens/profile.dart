@@ -1,6 +1,7 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:kikao_homes/core/models/profiles.dart';
-import 'package:kikao_homes/core/providers/authProvider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -17,41 +18,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
   }
 
-  Future<Profiles> getUserProfile() async {
-    try {
-      final response = await Supabase.instance.client
-          .from('profiles')
-          .select()
-          .eq('id', Supabase.instance.client.auth.currentUser?.id ?? '')
-          .single();
+ final String? userId = Supabase.instance.client.auth.currentUser?.id;
 
-      if (response == null) {
-        throw Exception('Failed to fetch user profile: No data returned');
-      }
-
-      return Profiles.fromJson(response as Map<String, dynamic>);
-    } catch (e) {
-      throw Exception('Failed to fetch user profile: $e');
-    }
+Future<Profiles?> getUserProfile() async {
+  if (userId == null) {
+    log('User ID is null');
+    throw Exception('User ID is null');
+  } else {
+    log(userId!);
   }
+
+  try {
+    final response = await Supabase.instance.client
+        .from('profiles')
+        .select()
+        .eq('id', userId!)
+        .maybeSingle(); // returns null instead of throwing if not found
+
+    if (response == null) {
+      log('No profile found for userId: $userId');
+      return null; // or throw, depending on your use case
+    }
+
+    return Profiles.fromJson(response);
+  } catch (e) {
+    log(e.toString());
+    throw Exception('Failed to fetch user profile: $e');
+  }
+
+}
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE5E0D8),
       body: SafeArea(
-        child: FutureBuilder<Profiles>(
+        child: FutureBuilder<Profiles?>(
           future: getUserProfile(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData) {
-              return const Center(child: Text('No profile data found'));
-            }
-            
-            final profile = snapshot.data!;
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data == null) {
+                return const Center(child: Text('No profile data found'));
+              }
+              final profile = snapshot.data!;
             
             return CustomScrollView(
               slivers: [

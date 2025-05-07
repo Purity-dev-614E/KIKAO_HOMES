@@ -1,31 +1,14 @@
 import 'package:qr_flutter/qr_flutter.dart';
-import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-// Class to represent a file in web environment
-class WebFile {
-  final Uint8List bytes;
-  final String name;
-  
-  WebFile(this.bytes, this.name);
-  
-  // Methods to mimic File class behavior
-  Future<Uint8List> readAsBytes() async {
-    return bytes;
-  }
-}
-
-class QRCodeGenerator {
-  
-  // Generate QR code and return either a File (mobile) or WebFile (web)
-  static Future<dynamic> generateQRCode(String data, String fileName) async {
+class QRCodeGeneratorWeb {
+  // Generate QR code and return bytes
+  static Future<Uint8List> generateQRCode(String data, String fileName) async {
     try {
       final qr = QrPainter(
         data: data,
@@ -40,17 +23,8 @@ class QRCodeGenerator {
       final img = await pic.toImage(200, 200);
       final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData!.buffer.asUint8List();
-
-      if (kIsWeb) {
-        // For web, return a WebFile object
-        return WebFile(pngBytes, '$fileName.png');
-      } else {
-        // For mobile, use File system
-        final directory = await getApplicationDocumentsDirectory();
-        final file = File('${directory.path}/$fileName.png');
-        await file.writeAsBytes(pngBytes);
-        return file;
-      }
+      
+      return pngBytes;
     } catch (e) {
       print('Error generating QR code: $e');
       rethrow;
@@ -58,11 +32,10 @@ class QRCodeGenerator {
   }
 
   // Generate QR code as PDF
-  static Future<dynamic> generateQRCodePDF(String data, String fileName, String title) async {
+  static Future<Uint8List> generateQRCodePDF(String data, String fileName, String title) async {
     try {
       // First generate the QR code image
-      final qrFile = await generateQRCode(data, fileName);
-      final Uint8List qrImage = await qrFile.readAsBytes();
+      final qrImage = await generateQRCode(data, fileName);
       
       // Create a PDF document
       final pdf = pw.Document();
@@ -108,17 +81,7 @@ class QRCodeGenerator {
       
       // Save the PDF
       final pdfBytes = await pdf.save();
-      
-      if (kIsWeb) {
-        // For web, return a WebFile object
-        return WebFile(pdfBytes, '$fileName.pdf');
-      } else {
-        // For mobile, use File system
-        final directory = await getApplicationDocumentsDirectory();
-        final pdfFile = File('${directory.path}/$fileName.pdf');
-        await pdfFile.writeAsBytes(pdfBytes);
-        return pdfFile;
-      }
+      return pdfBytes;
     } catch (e) {
       print('Error generating PDF: $e');
       rethrow;
@@ -126,69 +89,52 @@ class QRCodeGenerator {
   }
 
   // Generate Entry QR code (for visitor registration)
-  static Future<Map<String, dynamic>> generateEntryQR() async {
-    final pngFile = await generateQRCode(
+  static Future<Map<String, Uint8List>> generateEntryQR() async {
+    final pngBytes = await generateQRCode(
       '/visitors/registration',
       'entry_qr',
     );
     
-    final pdfFile = await generateQRCodePDF(
+    final pdfBytes = await generateQRCodePDF(
       '/visitors/registration',
       'entry_qr',
       'Visitor Registration QR Code',
     );
     
     return {
-      'png': pngFile,
-      'pdf': pdfFile,
+      'png': pngBytes,
+      'pdf': pdfBytes,
     };
   }
 
   // Generate Exit QR code (for visitor checkout)
-  static Future<Map<String, dynamic>> generateExitQR() async {
-    final pngFile = await generateQRCode(
+  static Future<Map<String, Uint8List>> generateExitQR() async {
+    final pngBytes = await generateQRCode(
       '/visitors/checkout',
       'exit_qr',
     );
     
-    final pdfFile = await generateQRCodePDF(
+    final pdfBytes = await generateQRCodePDF(
       '/visitors/checkout',
       'exit_qr',
       'Visitor Checkout QR Code',
     );
     
     return {
-      'png': pngFile,
-      'pdf': pdfFile,
+      'png': pngBytes,
+      'pdf': pdfBytes,
     };
   }
   
-  // Print PDF file
-  static Future<void> printPDF(dynamic pdfFile) async {
+  // Print PDF bytes
+  static Future<void> printPDF(Uint8List pdfBytes) async {
     await Printing.layoutPdf(
-      onLayout: (_) async => await pdfFile.readAsBytes(),
+      onLayout: (_) async => pdfBytes,
     );
   }
   
-  // Share PDF file
-  static Future<void> sharePDF(dynamic pdfFile) async {
-    final bytes = await pdfFile.readAsBytes();
-    String filename;
-    
-    if (kIsWeb) {
-      if (pdfFile is WebFile) {
-        filename = pdfFile.name;
-      } else {
-        filename = 'document.pdf';
-      }
-    } else {
-      if (pdfFile is File) {
-        filename = pdfFile.path.split('/').last;
-      } else {
-        filename = 'document.pdf';
-      }
-    }
-    
-    await Printing.sharePdf(bytes: bytes, filename: filename);
+  // Share PDF bytes
+  static Future<void> sharePDF(Uint8List pdfBytes, String filename) async {
+    await Printing.sharePdf(bytes: pdfBytes, filename: filename);
   }
 }

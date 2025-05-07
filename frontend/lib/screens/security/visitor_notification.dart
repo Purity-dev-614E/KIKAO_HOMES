@@ -123,7 +123,7 @@ class _VisitorNotificationState extends State<VisitorNotification> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              widget.visitorData['name'] ?? 'John Doe',
+                              widget.visitorData['visitor_name'] ?? '',
                               style: AppTheme.subheadingStyle,
                               textAlign: TextAlign.center,
                             ),
@@ -151,11 +151,9 @@ class _VisitorNotificationState extends State<VisitorNotification> {
                       const SizedBox(height: 16),
                       
                       // Visitor Details
-                      _buildInfoRow('ID Number', widget.visitorData['id'] ?? '12345678'),
+                      _buildInfoRow('Phone', widget.visitorData['visitor_phone'] ?? '+254 712 345 678'),
                       const SizedBox(height: 12),
-                      _buildInfoRow('Phone', widget.visitorData['phone'] ?? '+254 712 345 678'),
-                      const SizedBox(height: 12),
-                      _buildInfoRow('Unit Visiting', widget.visitorData['unit'] ?? 'A-123'),
+                      _buildInfoRow('Unit Visiting', widget.visitorData['unit_number'] ?? 'A-123'),
                       const SizedBox(height: 12),
                       _buildInfoRow('Approved By', 'Resident Name'),
                       const SizedBox(height: 12),

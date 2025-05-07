@@ -85,14 +85,17 @@ class VisitService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         log("VisitService: Visit session created successfully");
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        log("VisitService: Parsed response data: ${jsonEncode(data)}");
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        log("VisitService: Parsed response data: ${jsonEncode(responseData)}");
         
-        if (data['data'] != null) {
-          return VisitSessions.fromJson(data['data']);
-        } else {
-          log("VisitService: Response data format unexpected: ${jsonEncode(data)}");
-          throw Exception('Invalid response format from server');
+        // If the server returns the created visit data, use it
+        if (responseData['data'] != null && responseData['data'] is Map) {
+          return VisitSessions.fromJson(Map<String, dynamic>.from(responseData['data']));
+        } 
+        // If no data is returned but the request was successful, return the original visit session
+        else {
+          log("VisitService: No visit data in response, returning original visit session");
+          return visitSession;
         }
       } else {
         log("VisitService: Failed to create visit session: ${response.statusCode}");

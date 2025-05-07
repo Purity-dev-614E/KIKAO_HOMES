@@ -35,18 +35,9 @@ class _SecurityDashboardScreenState extends State<SecurityDashboardScreen> {
       
       // Load active visits
       _activeVisits = await visitProvider.fetchActiveVisits();
-      
-      // Load recent checkouts directly from Supabase
-      final response = await Supabase.instance.client
-          .from('visit_sessions')
-          .select()
-          .eq('check_out_at', 'not null')
-          .order('check_out_at', ascending: false)
-          .limit(10); // Limit to last 10 checkouts
 
-      _recentCheckouts = (response as List)
-          .map((data) => VisitSessions.fromJson(data))
-          .toList();
+
+      _recentCheckouts = List.from(_activeVisits);
         } catch (e) {
       if (!mounted) return;
       

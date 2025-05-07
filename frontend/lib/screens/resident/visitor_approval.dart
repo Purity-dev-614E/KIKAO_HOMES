@@ -18,11 +18,6 @@ class VisitorApproval extends StatefulWidget {
 class _VisitorApprovalState extends State<VisitorApproval> {
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeSecurityId();
-  }
   
   Future<void> _approveVisitor() async {
     setState(() {
@@ -37,8 +32,7 @@ class _VisitorApprovalState extends State<VisitorApproval> {
       
       _showConfirmationDialog(true);
       await visitProvider.notifySecurityApproval(
-        securityId: securityId ?? 'Unknown Security ID',
-        message: 'Visitor approved: ${widget.visitorData['name']}',
+        message: 'Visitor approved: ${widget.visitorData['visitor_name']}',
       );
     } catch (e) {
       if (!mounted) return;
@@ -53,30 +47,6 @@ class _VisitorApprovalState extends State<VisitorApproval> {
       });
     }
   }
-  Future<void> _initializeSecurityId() async {
-    securityId = await _getSecurityId();
-  }
-
- Future<String?> _getSecurityId() async {
-      try {
-        final response = await Supabase.instance.client
-            .from('active_shifts')
-            .select('security_id')
-           .eq('logout', 'null')
-            .order('login', ascending: false)
-            .limit(1)
-            .single();
-
-        if (response != null && response['security_id'] != null) {
-          return response['security_id'] as String;
-        }
-        return null;
-      } catch (e) {
-        print('Error fetching security ID: $e');
-        return null;
-      }
-    }
-    String? securityId;
   
   Future<void> _rejectVisitor() async {
     setState(() {
@@ -91,8 +61,7 @@ class _VisitorApprovalState extends State<VisitorApproval> {
       
       _showConfirmationDialog(false);
       await visitProvider.notifySecurityRejection(
-        securityId: securityId ?? 'Unknown Security ID',
-        message: 'Visitor rejected: ${widget.visitorData['name']}',
+        message: 'Visitor rejected: ${widget.visitorData['visitor_name']}',
       );
     } catch (e) {
       if (!mounted) return;
@@ -228,13 +197,13 @@ class _VisitorApprovalState extends State<VisitorApproval> {
                       const SizedBox(height: 16),
                       
                       // Visitor Details
-                      _buildInfoRow('Name', widget.visitorData['name'] ?? 'John Doe'),
+                      _buildInfoRow('Name', widget.visitorData['visitor_name'] ?? ''),
                       const SizedBox(height: 12),
-                      _buildInfoRow('ID Number', widget.visitorData['id'] ?? '12345678'),
+                      _buildInfoRow('ID Number', widget.visitorData['national_id'] ?? ''),
                       const SizedBox(height: 12),
-                      _buildInfoRow('Phone', widget.visitorData['phone'] ?? '+254 712 345 678'),
+                      _buildInfoRow('Phone', widget.visitorData['visitor_phone'] ?? ''),
                       const SizedBox(height: 12),
-                      _buildInfoRow('Unit', widget.visitorData['unit_number'] ?? 'A-123'),
+                      _buildInfoRow('Unit', widget.visitorData['unit_number'] ?? ''),
                       const SizedBox(height: 12),
                       _buildInfoRow('Time', '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}'),
                       const SizedBox(height: 12),

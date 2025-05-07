@@ -91,7 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
         onTap: (index) {
           if (index == 0) {
-            Navigator.pushNamed(context, '/user-management');
+            Navigator.pushNamed(context, '/user_management');
           } else if (index == 1) {
             Navigator.pushNamed(context, '/admin/settings');
           }
@@ -106,10 +106,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.white),
-                    onPressed: () {},
-                  ),
                   const Text(
                     'Admin Dashboard',
                     style: TextStyle(
@@ -117,17 +113,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.notifications, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.person, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/profile');
-                    },
                   ),
                 ],
               ),
