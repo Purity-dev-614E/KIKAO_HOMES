@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/models/visit_sessions.dart';
 import '../../core/providers/visit_provider.dart';
-import '../../core/providers/authProvider.dart';
 import 'package:flutter/services.dart';
+import 'waiting_screen.dart';
 
 class VisitorRegistrationScreen extends StatefulWidget {
   const VisitorRegistrationScreen({super.key});
@@ -83,11 +83,8 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
         if (!mounted) return;
 
         log('Visit registered successfully');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Visit registered successfully')),
-        );
-
         log('Sending push notification');
+        
         try {
           await visitProvider.sendPushNotification(
             unitNumber: _unitNumberController.text,
@@ -99,7 +96,29 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
           // Continue even if notification fails
         }
 
-        Navigator.of(context).pop();
+        if (!mounted) return;
+        
+        // Show waiting screen
+        await Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const WaitingScreen(
+              message: 'Waiting for resident approval...',
+              isSuccess: false,
+            ),
+          ),
+        );
+        
+        // After approval, show success and pop back
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const WaitingScreen(
+                message: 'Your visit has been approved!',
+                isSuccess: true,
+              ),
+            ),
+          );
+        }
       } catch (serviceError) {
         log('Error in createVisitSession: $serviceError');
         throw serviceError;

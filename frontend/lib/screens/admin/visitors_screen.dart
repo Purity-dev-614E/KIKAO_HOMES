@@ -24,7 +24,7 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
     try {
       final response = await Supabase.instance.client
           .from('visit_sessions')
-          .select('id, visitor_name, unit_number, check_in_at, check_out_at, visitor_phone, status, national_id');
+          .select();
 
       setState(() {
         _visitors.clear();

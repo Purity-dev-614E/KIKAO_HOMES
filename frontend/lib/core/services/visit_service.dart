@@ -81,7 +81,7 @@ class VisitService {
       );
 
       log("VisitService: Create Visit Session response - Status: ${response.statusCode}");
-      log("VisitService: Response body: ${response.body}");
+      log("VisitService: Response body: ${response.body ?? 'No response body'}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         log("VisitService: Visit session created successfully");

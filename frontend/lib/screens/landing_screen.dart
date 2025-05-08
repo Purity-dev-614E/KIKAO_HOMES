@@ -85,16 +85,16 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
       // Navigate based on role
       switch (role) {
         case 'admin':
-          Navigator.pushReplacementNamed(context, '/admin/dashboard');
+          Navigator.pushReplacementNamed(context, '/admin_dashboard');
           break;
         case 'security':
-          Navigator.pushReplacementNamed(context, '/security_dashboard');
+          Navigator.pushReplacementNamed(context, '/security/dashboard');
           break;
         case 'resident':
-          Navigator.pushReplacementNamed(context, '/resident/dashboard');
+          Navigator.pushReplacementNamed(context, '/visitor_history');
           break;
         default:
-          Navigator.pushReplacementNamed(context, '/auth/login');
+          Navigator.pushReplacementNamed(context, '/login');
       }
       return const SizedBox.shrink(); // Return empty widget since we're navigating away
     }
@@ -284,3 +284,4 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
     );
   }
 }
+

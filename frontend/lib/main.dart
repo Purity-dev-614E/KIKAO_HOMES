@@ -210,10 +210,6 @@ class MyApp extends StatelessWidget {
               return MaterialPageRoute(builder: (_) => const SettingsScreen());
             case '/user_management':
               return MaterialPageRoute(builder: (_) => const UserManagementScreen());
-            case '/residents':
-              return MaterialPageRoute(builder: (_) => const ResidentsScreen());
-            case '/visitors':
-              return MaterialPageRoute(builder: (_) => const VisitorsScreen());
             case '/admin/qr-management':
               return MaterialPageRoute(builder: (_) => const QRManagementScreen());
             case '/visitor_history':

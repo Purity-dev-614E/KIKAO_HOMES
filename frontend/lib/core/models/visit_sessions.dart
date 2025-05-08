@@ -32,16 +32,15 @@ class VisitSessions {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'visitor_name': VisitorName,
-      'visitor_phone': visitorPhone,
-      'national_id': NationalID,
-      'unit_number': unitNumber,
-      'status': status,
-      'check_in_at': checkInTime,
-      'check_out_at': checkOutTime,
-    };
-  }
+Map<String, dynamic> toJson() {
+  return {
+    'visitor_name': VisitorName,
+    'visitor_phone': visitorPhone,
+    'national_id': NationalID,
+    'unit_number': unitNumber,
+    'status': status,
+    'check_in_at': checkInTime ?? '',
+    'check_out_at': checkOutTime ?? '',
+  };
+}
 }
