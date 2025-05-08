@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:kikao_homes/core/models/profiles.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'admin_theme.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,10 +15,6 @@ Future<int> getAllResidents() async {
       .select()
       .eq('role', 'resident');
 
-  if (response == null) {
-    throw Exception('Failed to load residents');
-  }
-
   return (response as List).length;
 }
 
@@ -26,10 +22,6 @@ Future<int> getAllVisitors() async {
   final response = await Supabase.instance.client
       .from('visit_sessions')
       .select();
-
-  if (response == null) {
-    throw Exception('Failed to load visitors');
-  }
 
   return (response as List).length;
 }
@@ -39,10 +31,6 @@ Future<int> getAllSecurity() async {
       .from('profiles')
       .select()
       .eq('role', 'security');
-  if (response == null) {
-    throw Exception('Failed to load Security officers');
-  }
-
   return (response as List).length;
 }
 
@@ -101,21 +89,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              color: const Color(0xFF4A6B5D),
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Text(
-                    'Admin Dashboard',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+            AdminTheme.header(
+              context: context,
+              title: 'Admin Dashboard',
+              showBackButton: false,
             ),
             Expanded(
               child: Padding(
@@ -128,10 +105,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _buildDashboardCard(
                       icon: Icons.person_add,
                       title: 'Residents',
-                     count: _residentCount.toString(),
-                    onTap: () {
-                      Navigator.pushNamed(context, '/admin/residents');
-                    },
+                      count: _residentCount.toString(),
+                      onTap: () {
+                        Navigator.pushNamed(context, '/admin/residents');
+                      },
                     ),
                     _buildDashboardCard(
                       icon: Icons.people,
@@ -173,45 +150,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String count,
     required VoidCallback onTap,
   }) {
-   return Card(
-     elevation: 2,
-     shape: RoundedRectangleBorder(
-       borderRadius: BorderRadius.circular(12),
-     ),
-     child: InkWell(
-       onTap: onTap,
-       borderRadius: BorderRadius.circular(12),
-       child: Padding(
-         padding: const EdgeInsets.all(16.0),
-         child: Column(
-           mainAxisAlignment: MainAxisAlignment.center,
-           children: [
-             Icon(
-               icon,
-               size: 32,
-               color: const Color(0xFF4A6B5D),
-             ),
-             const SizedBox(height: 12),
-             Text(
-               count,
-               style: const TextStyle(
-                 fontSize: 20,
-                 fontWeight: FontWeight.bold,
-                 color: Color(0xFF4A6B5D),
-               ),
-             ),
-             const SizedBox(height: 6),
-             Text(
-               title,
-               style: const TextStyle(
-                 fontSize: 14,
-                 color: Color(0xFF2D2D2D),
-               ),
-             ),
-           ],
-         ),
-       ),
-     ),
-   );
+    return AdminTheme.card(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 32,
+            color: AdminTheme.primaryColor,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            count,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AdminTheme.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: AdminTheme.subtitleTextStyle,
+          ),
+        ],
+      ),
+    );
   }
 }

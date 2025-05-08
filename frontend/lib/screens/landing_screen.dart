@@ -214,10 +214,12 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
+        // Clamp the animation value between 0.0 and 1.0
+        final clampedValue = animation.value.clamp(0.0, 1.0);
         return Transform.translate(
-          offset: Offset(50 * (1 - animation.value), 0),
+          offset: Offset(50 * (1 - clampedValue), 0),
           child: Opacity(
-            opacity: animation.value,
+            opacity: clampedValue,
             child: _buildFeatureCard(
               icon: icon,
               title: title,

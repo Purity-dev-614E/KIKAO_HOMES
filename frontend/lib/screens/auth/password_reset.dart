@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/authProvider.dart';
+import '../../core/constants/theme_constants.dart';
 
 class PasswordResetScreen extends StatefulWidget {
   const PasswordResetScreen({super.key});
@@ -75,7 +76,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE5E0D8),
+      backgroundColor: AppTheme.secondaryColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -90,52 +91,34 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A6B5D),
+                    color: AppTheme.primaryColor,
                   ),
                 ),
                 const SizedBox(height: 10),
                 const Text(
                   'Enter your email address and we\'ll send you a link to reset your password',
                   style: TextStyle(
-                    color: Color(0xFF2D2D2D),
+                    color: AppTheme.textColor,
                     fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 40),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                TextFormField(
+                  controller: _emailController,
+                  decoration: AppTheme.inputDecoration(
+                    'Email',
+                    hint: 'Email',
+                    prefixIcon: Icon(Icons.email, color: AppTheme.primaryColor),
                   ),
-                  child: TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      border: InputBorder.none,
-                      hintText: 'Email',
-                      prefixIcon: Icon(Icons.email, color: const Color(0xFF4A6B5D)),
-                      hintStyle: const TextStyle(
-                        color: Color(0xFF4A6B5D),
-                        fontSize: 16,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 if (_errorMessage != null)
@@ -163,7 +146,8 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _resetPassword,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFCC7357),
+                      backgroundColor: AppTheme.accentColor,
+                      foregroundColor: Colors.white,
                       minimumSize: const Size(200, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),

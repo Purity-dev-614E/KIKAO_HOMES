@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/authProvider.dart';
+import '../../core/constants/theme_constants.dart';
 
 class SetPasswordScreen extends StatefulWidget {
   const SetPasswordScreen({super.key});
@@ -82,7 +83,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE5E0D8),
+      backgroundColor: AppTheme.secondaryColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -97,7 +98,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A6B5D),
+                    color: AppTheme.primaryColor,
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -147,7 +148,8 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 ElevatedButton(
                   onPressed: _isLoading ? null : _setPassword,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCC7357),
+                    backgroundColor: AppTheme.accentColor,
+                    foregroundColor: Colors.white,
                     minimumSize: const Size(200, 50),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -170,7 +172,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                     const Text(
                       'Go back to',
                       style: TextStyle(
-                        color: Color(0xFF2D2D2D),
+                        color: AppTheme.textColor,
                       ),
                     ),
                     TextButton(
@@ -180,7 +182,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                       child: const Text(
                         'Sign In',
                         style: TextStyle(
-                          color: Color(0xFF4A6B5D),
+                          color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -201,51 +203,33 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     bool obscureText,
     VoidCallback onVisibilityChanged,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      decoration: AppTheme.inputDecoration(
+        label,
+        hint: label,
+        prefixIcon: const Icon(Icons.lock, color: AppTheme.primaryColor),
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscureText ? Icons.visibility : Icons.visibility_off,
+            color: AppTheme.primaryColor,
           ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscureText,
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          border: InputBorder.none,
-          hintText: label,
-          prefixIcon: const Icon(Icons.lock, color: Color(0xFF4A6B5D)),
-          suffixIcon: IconButton(
-            icon: Icon(
-              obscureText ? Icons.visibility : Icons.visibility_off,
-              color: const Color(0xFF4A6B5D),
-            ),
-            onPressed: onVisibilityChanged,
-          ),
-          hintStyle: const TextStyle(
-            color: Color(0xFF4A6B5D),
-            fontSize: 16,
-          ),
+          onPressed: onVisibilityChanged,
         ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter your password';
-          }
-          if (value.length < 6) {
-            return 'Password must be at least 6 characters';
-          }
-          if (label == 'Confirm Password' && value != _passwordController.text) {
-            return 'Passwords do not match';
-          }
-          return null;
-        },
       ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your password';
+        }
+        if (value.length < 6) {
+          return 'Password must be at least 6 characters';
+        }
+        if (label == 'Confirm Password' && value != _passwordController.text) {
+          return 'Passwords do not match';
+        }
+        return null;
+      },
     );
   }
 }

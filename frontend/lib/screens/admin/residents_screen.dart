@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kikao_homes/core/services/auth_service.dart';
+import 'admin_theme.dart';
 
 class ResidentsScreen extends StatefulWidget {
   const ResidentsScreen({super.key});
@@ -10,13 +11,13 @@ class ResidentsScreen extends StatefulWidget {
 
 class _ResidentsScreenState extends State<ResidentsScreen> {
   late Future<List<Map<String, dynamic>>> _residentsFuture;
-  
+
   @override
   void initState() {
     super.initState();
     _residentsFuture = AuthService().getProfilesByRole('resident');
   }
-  
+
   // Fallback data in case the API fails
   final List<Map<String, dynamic>> _fallbackResidents = [
     {
@@ -37,40 +38,22 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE5E0D8),
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              color: const Color(0xFF4A6B5D),
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const Text(
-                    'Residents',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.filter_list, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
+            AdminTheme.header(
+              context: context,
+              title: 'Residents',
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.filter_list, color: Colors.white),
+                  onPressed: () {},
+                ),
+              ],
             ),
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -88,7 +71,8 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
                           ElevatedButton(
                             onPressed: () {
                               setState(() {
-                                _residentsFuture = AuthService().getProfilesByRole('resident');
+                                _residentsFuture =
+                                    AuthService().getProfilesByRole('resident');
                               });
                             },
                             child: const Text('Retry'),
@@ -97,12 +81,13 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
                       ),
                     );
                   }
-                  
+
                   // Use data from API or fallback to sample data if empty
-                  final residents = (snapshot.hasData && snapshot.data!.isNotEmpty) 
-                      ? snapshot.data! 
+                  final residents = (snapshot.hasData &&
+                      snapshot.data!.isNotEmpty)
+                      ? snapshot.data!
                       : _fallbackResidents;
-                  
+
                   return ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
@@ -128,7 +113,8 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  _buildStatCard('Total Residents', residents.length.toString()),
+                                  _buildStatCard('Total Residents',
+                                      residents.length.toString()),
                                 ],
                               ),
                             ],
@@ -136,7 +122,36 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      ...residents.map((resident) => _buildResidentCard(resident)),
+                      ...residents.map((resident) =>
+                          AdminTheme.card(
+                            onTap: () {
+                              // Navigate to resident details
+                            },
+                            padding: const EdgeInsets.all(0),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+                              title: Text(
+                                resident['full_name'] ?? 'No Name',
+                                style: AdminTheme.titleTextStyle,
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text('Unit: ${resident['unit_number'] ??
+                                      'N/A'}',
+                                      style: AdminTheme.subtitleTextStyle),
+                                  Text('Phone: ${resident['phone'] ?? 'N/A'}',
+                                      style: AdminTheme.subtitleTextStyle),
+                                  Text('Email: ${resident['email'] ?? 'N/A'}',
+                                      style: AdminTheme.subtitleTextStyle),
+                                ],
+                              ),
+                              trailing: const Icon(Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: AdminTheme.primaryColor),
+                            ),
+                          )),
                     ],
                   );
                 },
@@ -147,9 +162,10 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          // Navigate to add resident screen
         },
-        backgroundColor: const Color(0xFFCC7357),
-        child: const Icon(Icons.add),
+        backgroundColor: AdminTheme.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -181,75 +197,4 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
       ),
     );
   }
-
-  Widget _buildResidentCard(Map<String, dynamic> resident) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              resident['full_name'] ?? 'Unknown',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF4A6B5D),
-              ),
-            ),
-            const SizedBox(height: 10),
-            _buildResidentInfo('Unit:', resident['unit_number'] ?? 'Not assigned'),
-            _buildResidentInfo('Phone:', resident['phone'] ?? 'Not provided'),
-            _buildResidentInfo('Email:', resident['email'] ?? 'Not provided'),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Color(0xFF4A6B5D)),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildResidentInfo(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF4A6B5D),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Color(0xFF2D2D2D),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
 }

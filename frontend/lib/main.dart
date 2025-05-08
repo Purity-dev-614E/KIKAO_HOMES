@@ -249,6 +249,7 @@ class AppRouter extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     
     if (authProvider.user != null) {
+      print('user: ${authProvider.user}');
       final role = authProvider.user!['role'];
       
       switch (role) {

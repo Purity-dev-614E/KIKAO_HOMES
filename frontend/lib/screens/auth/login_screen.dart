@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/providers/authProvider.dart';
+import '../../core/constants/theme_constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -68,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE5E0D8),
+      backgroundColor: AppTheme.secondaryColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -83,14 +84,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A6B5D),
+                    color: AppTheme.primaryColor,
                   ),
                 ),
                 const SizedBox(height: 10),
                 const Text(
                   'Please sign in to continue',
                   style: TextStyle(
-                    color: Color(0xFF2D2D2D),
+                    color: AppTheme.textColor,
                     fontSize: 16,
                   ),
                 ),
@@ -123,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         'Forgot Password?',
                         style: TextStyle(
-                          color: Color(0xFF4A6B5D),
+                          color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -140,7 +141,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFCC7357),
+                      backgroundColor: AppTheme.accentColor,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -162,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text(
                       'Don\'t have an account?',
                       style: TextStyle(
-                        color: Color(0xFF2D2D2D),
+                        color: AppTheme.textColor,
                       ),
                     ),
                     TextButton(
@@ -172,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         'Register',
                         style: TextStyle(
-                          color: Color(0xFF4A6B5D),
+                          color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -194,83 +196,46 @@ class _LoginScreenState extends State<LoginScreen> {
     required TextInputType keyboardType,
     required String? Function(String?)? validator,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: AppTheme.inputDecoration(
+        label,
+        hint: label,
+        prefixIcon: Icon(icon, color: AppTheme.primaryColor),
       ),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: const Color(0xFF4A6B5D)),
-          labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.white,
-        ),
-        validator: validator,
-      ),
+      validator: validator,
     );
   }
 
   Widget _buildPasswordField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscurePassword,
+      decoration: AppTheme.inputDecoration(
+        'Password',
+        prefixIcon: const Icon(Icons.lock, color: AppTheme.primaryColor),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+            color: AppTheme.primaryColor,
           ),
-        ],
-      ),
-      child: TextFormField(
-        controller: _passwordController,
-        obscureText: _obscurePassword,
-        decoration: InputDecoration(
-          prefixIcon: const Icon(Icons.lock, color: Color(0xFF4A6B5D)),
-          suffixIcon: IconButton(
-            icon: Icon(
-              _obscurePassword ? Icons.visibility : Icons.visibility_off,
-              color: const Color(0xFF4A6B5D),
-            ),
-            onPressed: () {
-              setState(() {
-                _obscurePassword = !_obscurePassword;
-              });
-            },
-          ),
-          labelText: 'Password',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.white,
+          onPressed: () {
+            setState(() {
+              _obscurePassword = !_obscurePassword;
+            });
+          },
         ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter your password';
-          }
-          if (value.length < 6) {
-            return 'Password must be at least 6 characters';
-          }
-          return null;
-        },
       ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your password';
+        }
+        if (value.length < 6) {
+          return 'Password must be at least 6 characters';
+        }
+        return null;
+      },
     );
   }
 }
