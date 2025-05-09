@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
-import 'package:kikao_homes/supabase_env.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -123,7 +122,7 @@ class AuthService{
                 .eq('id', authResponse.user!.id)
                 .single();
                 
-            if (profileData != null && profileData['role'] != null) {
+            if (profileData['role'] != null) {
               await prefs.setString('role', profileData['role']);
               log('User role: ${profileData['role']}');
             } else {
@@ -175,7 +174,7 @@ class AuthService{
                   .eq('id', data['AuthId'])
                   .single();
                   
-              if (profileData != null && profileData['role'] != null) {
+              if (profileData['role'] != null) {
                 await prefs.setString('role', profileData['role']);
                 log('User role from profile: ${profileData['role']}');
               }
@@ -227,7 +226,7 @@ class AuthService{
                 .eq('id', data['AuthId'])
                 .single();
                 
-            if (profileData != null && profileData['role'] != null) {
+            if (profileData['role'] != null) {
               await prefs.setString('role', profileData['role']);
               log('User role from profile: ${profileData['role']}');
             }

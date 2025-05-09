@@ -19,7 +19,7 @@ class QRCodeGeneratorWeb {
       );
 
       final painter = qr;
-      final pic = await painter.toPicture(200);
+      final pic = painter.toPicture(200);
       final img = await pic.toImage(200, 200);
       final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData!.buffer.asUint8List();

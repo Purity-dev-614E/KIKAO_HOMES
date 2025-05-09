@@ -153,7 +153,7 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
                 itemBuilder: (context, index) {
                   final visit = filteredVisits[index];
 
-                  DateTime _parseDate(String date, {DateTime? fallback}) {
+                  DateTime parseDate(String date, {DateTime? fallback}) {
                     try {
                       return DateTime.parse(date);
                     } catch (e) {
@@ -161,10 +161,10 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
                     }
                   }
                  final timeIn = visit['check_in_at'] != null
-                     ? _parseDate(visit['check_in_at'].toString(), fallback: DateTime.now())
+                     ? parseDate(visit['check_in_at'].toString(), fallback: DateTime.now())
                      : DateTime.now();
                  final timeOut = visit['check_out_at'] != null && visit['check_out_at'].toString().isNotEmpty
-                     ? _parseDate(visit['check_out_at'].toString())
+                     ? parseDate(visit['check_out_at'].toString())
                      : null;
 
                   return AdminTheme.card(

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:kikao_homes/screens/resident/visitor_approval.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/models/visit_sessions.dart';
-import '../../core/providers/visit_provider.dart';
 
 class VisitorHistoryScreen extends StatefulWidget {
   const VisitorHistoryScreen({super.key});

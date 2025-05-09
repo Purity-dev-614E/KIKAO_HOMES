@@ -121,7 +121,7 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
         }
       } catch (serviceError) {
         log('Error in createVisitSession: $serviceError');
-        throw serviceError;
+        rethrow;
       }
     } catch (e) {
       if (!mounted) return;

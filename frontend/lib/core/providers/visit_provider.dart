@@ -66,7 +66,7 @@ class VisitProvider with ChangeNotifier {
       print('VisitProvider: Error creating visit session: $e');
       _errorMessage = e.toString();
       notifyListeners();
-      throw e; // Re-throw to allow proper error handling in UI
+      rethrow; // Re-throw to allow proper error handling in UI
     }
   }
 

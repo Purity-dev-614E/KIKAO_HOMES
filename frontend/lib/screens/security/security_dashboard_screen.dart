@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/visit_provider.dart';
 import '../../core/models/visit_sessions.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../utils/qr_code_generator.dart';
 
 class SecurityDashboardScreen extends StatefulWidget {
   const SecurityDashboardScreen({super.key});

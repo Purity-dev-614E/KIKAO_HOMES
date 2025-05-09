@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/providers/visit_provider.dart';
 import '../../core/constants/theme_constants.dart';
 

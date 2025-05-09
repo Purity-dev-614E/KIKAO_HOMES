@@ -21,13 +21,13 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
   // Fallback data in case the API fails
   final List<Map<String, dynamic>> _fallbackResidents = [
     {
-      'name': 'John Doe',
+      'full_name': 'John Doe',
       'unit_number': 'A101',
       'phone': '+254 700 000 000',
       'email': 'john@example.com',
     },
     {
-      'name': 'Jane Smith',
+      'full_name': 'Jane Smith',
       'unit_number': 'B202',
       'phone': '+254 700 000 001',
       'email': 'jane@example.com',
@@ -38,6 +38,7 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AdminTheme.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -48,113 +49,249 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
                 IconButton(
                   icon: const Icon(Icons.search, color: Colors.white),
                   onPressed: () {},
+                  tooltip: 'Search residents',
                 ),
                 IconButton(
                   icon: const Icon(Icons.filter_list, color: Colors.white),
                   onPressed: () {},
+                  tooltip: 'Filter residents',
                 ),
               ],
             ),
             Expanded(
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: _residentsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Error: ${snapshot.error}'),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _residentsFuture =
-                                    AuthService().getProfilesByRole('resident');
-                              });
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Manage Residents',
+                      style: AdminTheme.titleTextStyle.copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  }
-
-                  // Use data from API or fallback to sample data if empty
-                  final residents = (snapshot.hasData &&
-                      snapshot.data!.isNotEmpty)
-                      ? snapshot.data!
-                      : _fallbackResidents;
-
-                  return ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Residents Overview',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF4A6B5D),
-                                ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'View and manage all residents in your community',
+                      style: AdminTheme.subtitleTextStyle,
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: FutureBuilder<List<Map<String, dynamic>>>(
+                        future: _residentsFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(AdminTheme.accentColor),
                               ),
-                              const SizedBox(height: 10),
-                              Row(
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  _buildStatCard('Total Residents',
-                                      residents.length.toString()),
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 64,
+                                    color: Colors.red.shade300,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Error loading residents',
+                                    style: AdminTheme.titleTextStyle.copyWith(
+                                      color: Colors.red.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    snapshot.error.toString(),
+                                    style: AdminTheme.subtitleTextStyle,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        _residentsFuture = AuthService().getProfilesByRole('resident');
+                                      });
+                                    },
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Retry'),
+                                    style: AdminTheme.elevatedButtonTheme.style,
+                                  ),
                                 ],
+                              ),
+                            );
+                          }
+
+                          // Use data from API or fallback to sample data if empty
+                          final residents = (snapshot.hasData && snapshot.data!.isNotEmpty)
+                              ? snapshot.data!
+                              : _fallbackResidents;
+
+                          return Column(
+                            children: [
+                              // Stats card
+                              AdminTheme.dashboardCard(
+                                accentColorOverride: AdminTheme.accentColor,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: AdminTheme.accentColor.withOpacity(0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.people,
+                                          size: 28,
+                                          color: AdminTheme.accentColor,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Total Residents',
+                                            style: AdminTheme.subtitleTextStyle.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            residents.length.toString(),
+                                            style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: AdminTheme.accentColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              
+                              // Residents list
+                              Expanded(
+                                child: residents.isEmpty
+                                    ? Center(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.person_off,
+                                              size: 64,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'No residents found',
+                                              style: AdminTheme.titleTextStyle.copyWith(
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : ListView.builder(
+                                        itemCount: residents.length,
+                                        itemBuilder: (context, index) {
+                                          final resident = residents[index];
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 12),
+                                            child: AdminTheme.card(
+                                              onTap: () {
+                                                // Navigate to resident details
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    width: 50,
+                                                    height: 50,
+                                                    decoration: BoxDecoration(
+                                                      color: AdminTheme.primaryColor.withOpacity(0.1),
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    child: Center(
+                                                      child: Text(
+                                                        (resident['full_name'] ?? 'R').substring(0, 1).toUpperCase(),
+                                                        style: TextStyle(
+                                                          color: AdminTheme.primaryColor,
+                                                          fontSize: 20,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 16),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          resident['full_name'] ?? 'Unknown',
+                                                          style: const TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 16,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 4),
+                                                        Text(
+                                                          'Unit: ${resident['unit_number'] ?? 'N/A'}',
+                                                          style: TextStyle(
+                                                            color: Colors.grey.shade700,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 4),
+                                                        Text(
+                                                          resident['email'] ?? 'No email',
+                                                          style: TextStyle(
+                                                            color: Colors.grey.shade600,
+                                                            fontSize: 13,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Column(
+                                                    children: [
+                                                      IconButton(
+                                                        icon: const Icon(Icons.edit, color: AdminTheme.primaryColor),
+                                                        onPressed: () {
+                                                          // Edit resident
+                                                        },
+                                                        tooltip: 'Edit resident',
+                                                      ),
+                                                      IconButton(
+                                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                                        onPressed: () {
+                                                          // Delete resident
+                                                        },
+                                                        tooltip: 'Delete resident',
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
                               ),
                             ],
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 16),
-                      ...residents.map((resident) =>
-                          AdminTheme.card(
-                            onTap: () {
-                              // Navigate to resident details
-                            },
-                            padding: const EdgeInsets.all(0),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(16),
-                              title: Text(
-                                resident['full_name'] ?? 'No Name',
-                                style: AdminTheme.titleTextStyle,
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 4),
-                                  Text('Unit: ${resident['unit_number'] ??
-                                      'N/A'}',
-                                      style: AdminTheme.subtitleTextStyle),
-                                  Text('Phone: ${resident['phone'] ?? 'N/A'}',
-                                      style: AdminTheme.subtitleTextStyle),
-                                  Text('Email: ${resident['email'] ?? 'N/A'}',
-                                      style: AdminTheme.subtitleTextStyle),
-                                ],
-                              ),
-                              trailing: const Icon(Icons.arrow_forward_ios,
-                                  size: 16,
-                                  color: AdminTheme.primaryColor),
-                            ),
-                          )),
-                    ],
-                  );
-                },
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -164,36 +301,10 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
         onPressed: () {
           // Navigate to add resident screen
         },
-        backgroundColor: AdminTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFCC7357),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-            ),
-          ),
-        ],
+        backgroundColor: AdminTheme.accentColor,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+        tooltip: 'Add new resident',
       ),
     );
   }
