@@ -33,8 +33,8 @@
   <link rel="manifest" href="manifest.json">
 
   <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
   <script>
     // Initialize Firebase
     const firebaseConfig = {
@@ -45,7 +45,53 @@
       authDomain: 'kikaohomes.firebaseapp.com',
       storageBucket: 'kikaohomes.firebasestorage.app',
     };
+    
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+    
+    // Initialize messaging if available
+    let messaging;
+    try {
+      messaging = firebase.messaging();
+      console.log("Firebase Messaging initialized successfully");
+      
+      // Request permission for notifications (can also be done after user interaction)
+      messaging.requestPermission()
+        .then(() => {
+          console.log('Notification permission granted.');
+          return messaging.getToken({
+            vapidKey: 'BBjW1phLyn2aZm_EIZ6jZrYrjku-bIjbYQ2vcl1PVlc8ZTgG-YsV0JXhLtuZgoYp9Zopeo4vPhAN-ZDpwXFUhrc'
+          });
+        })
+        .then((token) => {
+          console.log('FCM Token:', token);
+          // You can send this token to your server here
+        })
+        .catch((err) => {
+          console.log('Unable to get permission to notify.', err);
+        });
+        
+      // Handle foreground messages
+      messaging.onMessage((payload) => {
+        console.log('Message received in browser:', payload);
+        // You can show a custom notification here if needed
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const notification = new Notification(
+            payload.notification.title || 'Kikao Homes', 
+            {
+              body: payload.notification.body,
+              icon: './icons/Icon-192.png'
+            }
+          );
+          notification.onclick = function() {
+            window.focus();
+            notification.close();
+          };
+        }
+      });
+    } catch (error) {
+      console.error("Error initializing Firebase Messaging:", error);
+    }
   </script>
 </head>
 <body>
@@ -54,9 +100,17 @@
     // Register service worker for Firebase Messaging
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        // Use relative path to ensure it works regardless of deployment path
+        navigator.serviceWorker.register('./firebase-messaging-sw.js')
           .then(registration => {
-            console.log('ServiceWorker registration successful');
+            console.log('ServiceWorker registration successful with scope:', registration.scope);
+            
+            // Request notification permission on page load (optional)
+            if ('Notification' in window) {
+              Notification.requestPermission().then(permission => {
+                console.log('Notification permission status:', permission);
+              });
+            }
           })
           .catch(err => {
             console.log('ServiceWorker registration failed: ', err);

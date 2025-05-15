@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:kikao_homes/core/providers/notificationProvider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/visit_sessions.dart';
 import '../services/notification_service.dart';
 import '../services/visit_service.dart';
 
 class VisitProvider with ChangeNotifier {
   final VisitService _visitService = VisitService();
+  final _supabase = Supabase.instance.client;
 
   List<VisitSessions> _visits = [];
   bool _isLoading = false;
@@ -54,7 +56,7 @@ class VisitProvider with ChangeNotifier {
   }
 
   // Create a new visit session
-  Future<void> createVisitSession(VisitSessions session) async {
+  Future<VisitSessions> createVisitSession(VisitSessions session) async {
     try {
       print('VisitProvider: Creating visit session with data: ${session.toJson()}');
       final newSession = await _visitService.createVisitSession(session);
@@ -62,6 +64,7 @@ class VisitProvider with ChangeNotifier {
       _visits.add(newSession);
       notifyListeners();
       print('VisitProvider: Notified listeners after adding new session');
+      return newSession; // Return the created session
     } catch (e) {
       print('VisitProvider: Error creating visit session: $e');
       _errorMessage = e.toString();
@@ -112,41 +115,103 @@ class VisitProvider with ChangeNotifier {
   }
 
 
+  final NotificationProvider _notificationProvider = NotificationProvider();
+
   Future<void> sendPushNotification({
     required String unitNumber,
     required String message,
+    String type = 'visitor',
+    Map<String, dynamic>? data,
   }) async {
     try {
-      // Use NotificationService to send the notification
-      await NotificationProvider().initializeNotifications(); //Ensure notifications are initialized
-      print('Sending notification to unit $unitNumber: $message');
-      // Add logic to send notification to the specific unit if needed
+      await _notificationProvider.initializeNotifications();
+      
+      // Format the visitor data to match the expected structure
+      // This ensures consistency between direct navigation and notification-based navigation
+      Map<String, dynamic> formattedData = {};
+      
+      if (data != null) {
+        // Map the data to the expected format for visitor approval screen
+        formattedData = {
+          'id': data['id'] ?? '',
+          'visitor_id': data['visitor_id'] ?? data['id'] ?? '',
+          'visitor_name': data['visitor_name'] ?? data['name'] ?? '',
+          'visitor_phone': data['visitor_phone'] ?? data['phone'] ?? '',
+          'unit_number': data['unit_number'] ?? unitNumber,
+          'status': data['status'] ?? 'pending',
+          'check_in_at': data['check_in_at'] ?? data['time'] ?? DateTime.now().toIso8601String(),
+          'check_out_at': data['check_out_at'] ?? '',
+          'national_id': data['national_id'] ?? '',
+          'visit_purpose': data['purpose'] ?? data['visit_purpose'] ?? 'Visit',
+        };
+      }
+      
+      print('Sending formatted notification data: $formattedData');
+      
+      await _notificationProvider.sendUnitNotification(
+        unitNumber: unitNumber,
+        message: message,
+        type: type,
+        data: formattedData,
+      );
+      print('Notification sent to unit $unitNumber: $message');
     } catch (e) {
       print('Error sending push notification: $e');
+      rethrow;
     }
   }
 
   Future<void> notifySecurityApproval({
     required String message,
-  }) async{
+    Map<String, dynamic>? data,
+  }) async {
     try {
-      // Use NotificationService to send the notification
-      await NotificationProvider().initializeNotifications(); // Ensure notifications are initialized
-      print('Sending notification to security $message');
+      await _notificationProvider.initializeNotifications();
+      // Assuming security users have a specific role in the profiles table
+      final securityUsers = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'security');
+
+      for (var user in securityUsers) {
+        await _notificationProvider.sendNotification(
+          userId: user['id'],
+          message: message,
+          type: 'security_approval',
+          data: data,
+        );
+      }
+      print('Security approval notification sent: $message');
     } catch (e) {
-      print('Error sending push notification: $e');
+      print('Error sending security approval notification: $e');
+      rethrow;
     }
   }
 
- Future<void> notifySecurityRejection({
-   required String message,
- }) async {
-   try {
-     // Use NotificationService to send the notification
-     await NotificationProvider().initializeNotifications(); // Ensure notifications are initialized
-     print('Sending notification: $message');
-   } catch (e) {
-     print('Error sending push notification: $e');
-   }
- }
+  Future<void> notifySecurityRejection({
+    required String message,
+    Map<String, dynamic>? data,
+  }) async {
+    try {
+      await _notificationProvider.initializeNotifications();
+      // Assuming security users have a specific role in the profiles table
+      final securityUsers = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'security');
+
+      for (var user in securityUsers) {
+        await _notificationProvider.sendNotification(
+          userId: user['id'],
+          message: message,
+          type: 'security_rejection',
+          data: data,
+        );
+      }
+      print('Security rejection notification sent: $message');
+    } catch (e) {
+      print('Error sending security rejection notification: $e');
+      rethrow;
+    }
+  }
 }

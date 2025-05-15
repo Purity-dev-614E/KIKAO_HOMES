@@ -47,17 +47,8 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
     });
 
     try {
-      // Check if user is authenticated with Supabase
-      final supabase = Supabase.instance.client;
-      final session = supabase.auth.currentSession;
-
-      if (session == null) {
-        log('User is not authenticated. Creating anonymous visit.');
-        // For visitor registration, we might want to allow this even without authentication
-        // Or we could redirect to login
-      } else {
-        log('User is authenticated. Session token: ${session.accessToken.substring(0, 10)}...');
-      }
+      // Visitor registration is always anonymous - no authentication needed
+      log('Processing anonymous visitor registration');
 
       log('Getting VisitProvider from context');
       final visitProvider = Provider.of<VisitProvider>(context, listen: false);
@@ -67,7 +58,7 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
         VisitorName: _nameController.text,
         visitorPhone: _phoneController.text,
         NationalID: _nationalIdController.text,
-        unitNumber: _unitNumberController.text,
+        unitNumber: _unitNumberController.text.toUpperCase(), // Ensure unit number is uppercase
         status: 'pending',
         checkInTime: null,
         checkOutTime: null,
@@ -77,7 +68,8 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
       log('Attempting to create visit session...');
 
       try {
-        await visitProvider.createVisitSession(visit);
+        // Create the visit session and get the result
+        final createdVisit = await visitProvider.createVisitSession(visit);
         log('Visit session created successfully in provider');
 
         if (!mounted) return;
@@ -86,14 +78,55 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
         log('Sending push notification');
         
         try {
-          await visitProvider.sendPushNotification(
-            unitNumber: _unitNumberController.text,
-            message: 'A visitor has been registered for your unit.',
-          );
-          log('Push notification sent successfully');
+          // Use the ID from the created visit
+          final visitId = createdVisit.id;
+          
+          try {
+            // Try to send notification with minimal required data
+            await visitProvider.sendPushNotification(
+              unitNumber: _unitNumberController.text.toUpperCase(),
+              message: 'A visitor has been registered for your unit.',
+              type: 'visitor',
+              data: {
+                'visitor_id': visitId,
+                'visitor_name': _nameController.text,
+                'visitor_phone': _phoneController.text,
+                'unit_number': _unitNumberController.text.toUpperCase(),
+                'status': 'pending',
+              },
+            );
+            log('Push notification sent successfully');
+          } catch (notificationError) {
+            log('Error sending push notification: $notificationError');
+            // Continue even if notification fails - the visit is still registered
+          }
+          
+          // Try direct API call to send push notification if the provider method fails
+          try {
+            final supabase = Supabase.instance.client;
+            final response = await supabase.functions.invoke(
+              'sendpushnotification',
+              body: {
+                'unitNumber': _unitNumberController.text.toUpperCase(),
+                'message': 'A visitor has been registered for your unit.',
+                'type': 'visitor',
+                'data': {
+                  'visitor_id': visitId,
+                  'visitor_name': _nameController.text,
+                  'visitor_phone': _phoneController.text,
+                  'unit_number': _unitNumberController.text.toUpperCase(),
+                  'status': 'pending',
+                }
+              },
+            );
+            log('Direct push notification sent successfully: ${response.data}');
+          } catch (directNotificationError) {
+            log('Error sending direct push notification: $directNotificationError');
+            // Continue even if direct notification fails
+          }
         } catch (notificationError) {
-          log('Error sending push notification: $notificationError');
-          // Continue even if notification fails
+          log('Error in notification block: $notificationError');
+          // Continue even if all notification attempts fail
         }
 
         if (!mounted) return;
@@ -107,28 +140,30 @@ class _VisitorRegistrationScreenState extends State<VisitorRegistrationScreen> {
             ),
           ),
         );
-        
-        // After approval, show success and pop back
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const WaitingScreen(
-                message: 'Your visit has been approved!',
-                isSuccess: true,
-              ),
-            ),
-          );
-        }
       } catch (serviceError) {
         log('Error in createVisitSession: $serviceError');
-        rethrow;
+        
+        // Show specific error message for "Resident not found"
+        if (serviceError.toString().contains("Resident not found")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No resident found for this unit. Please check the unit number.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        } else {
+          rethrow;
+        }
       }
     } catch (e) {
       if (!mounted) return;
 
       log('Error during registration: ${e.toString()}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration failed: ${e.toString()}')),
+        SnackBar(
+          content: Text('Registration failed: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (!mounted) return;

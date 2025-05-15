@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kikao_homes/core/services/auth_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'admin_theme.dart';
 
 class ResidentsScreen extends StatefulWidget {
@@ -271,9 +272,22 @@ class _ResidentsScreenState extends State<ResidentsScreen> {
                                                       ),
                                                       IconButton(
                                                         icon: const Icon(Icons.delete, color: Colors.red),
-                                                        onPressed: () {
-                                                          // Delete resident
-                                                        },
+                                                      onPressed: () async {
+                                                        try {
+                                                          final userId = resident['id']; // Replace with the correct key for the user's ID
+                                                          await Supabase.instance.client.auth.admin.deleteUser(userId);
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            const SnackBar(content: Text('Resident deleted successfully')),
+                                                          );
+                                                          setState(() {
+                                                            _residentsFuture = AuthService().getProfilesByRole('resident');
+                                                          });
+                                                        } catch (e) {
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            SnackBar(content: Text('Error deleting resident: $e')),
+                                                          );
+                                                        }
+                                                      },
                                                         tooltip: 'Delete resident',
                                                       ),
                                                     ],

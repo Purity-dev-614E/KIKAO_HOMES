@@ -1,0 +1,168 @@
+## Visitor Approval Screen Recommendations
+
+Based on the analysis of your notification system, here are some recommendations for your visitor approval screen:
+
+### Current Notification Data Limitations
+
+The current backend implementation only sends the following data in the notification payload:
+```json
+{
+  "type": "visitor"
+}
+```
+
+This means that when a user taps on a notification, your app doesn't receive any specific information about which visitor needs approval.
+
+### Recommended Visitor Approval Screen Implementation
+
+Your visitor approval screen should be designed to handle this limited data by:
+
+1. **Fetching the most recent pending visitor request** when the screen loads:
+
+```dart
+class VisitorApprovalScreen extends StatefulWidget {
+  @override
+  _VisitorApprovalScreenState createState() => _VisitorApprovalScreenState();
+}
+
+class _VisitorApprovalScreenState extends State<VisitorApprovalScreen> {
+  bool _isLoading = true;
+  Map<String, dynamic>? _visitorData;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLatestVisitorRequest();
+  }
+
+  Future<void> _fetchLatestVisitorRequest() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      // Get the current user ID
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception("User not authenticated");
+      }
+
+      // Fetch the most recent pending visitor request for this user
+      final response = await Supabase.instance.client
+          .from('visitors')
+          .select()
+          .eq('resident_id', userId)
+          .eq('status', 'pending')
+          .order('created_at', ascending: false)
+          .limit(1)
+          .single();
+
+      if (response != null) {
+        setState(() {
+          _visitorData = response;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = "No pending visitor requests found";
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Error fetching visitor data: $e";
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Visitor Approval'),
+      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(child: Text(_errorMessage!))
+              : _buildVisitorApprovalContent(),
+    );
+  }
+
+  Widget _buildVisitorApprovalContent() {
+    // Build your UI using the _visitorData
+    return Column(
+      children: [
+        Text('Visitor Name: ${_visitorData!['name']}'),
+        Text('Phone: ${_visitorData!['phone']}'),
+        Text('Purpose: ${_visitorData!['purpose']}'),
+        // Add more visitor details as needed
+        
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () => _approveVisitor(),
+              child: Text('Approve'),
+            ),
+            ElevatedButton(
+              onPressed: () => _denyVisitor(),
+              style: ElevatedButton.styleFrom(primary: Colors.red),
+              child: Text('Deny'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _approveVisitor() async {
+    // Implement visitor approval logic
+  }
+
+  Future<void> _denyVisitor() async {
+    // Implement visitor denial logic
+  }
+}
+```
+
+### Backend Improvement Recommendations
+
+For a better user experience, consider updating your backend to include more information in the notification payload:
+
+```typescript
+body: JSON.stringify({
+  to: profile.device_token,
+  notification: {
+    title: "Kikao Homes",
+    body: message
+  },
+  data: {
+    type,
+    visitor_id: visitorId,  // Add the visitor ID if available
+    notification_id: typedNotification.id  // Add the notification ID
+  }
+})
+```
+
+This would allow your app to directly fetch the specific visitor data when a notification is tapped, rather than just showing the most recent pending request.
+
+### Alternative Approach: Use Notification ID
+
+If you can't modify the backend to include visitor information, consider including the notification ID in the payload:
+
+```typescript
+data: {
+  type,
+  notification_id: typedNotification.id
+}
+```
+
+Then in your visitor approval screen, you can:
+1. Fetch the notification details using the notification ID
+2. Extract the visitor information from the notification message or related data
+
+This approach would ensure that the user sees the specific visitor request that triggered the notification, rather than just the most recent pending request.

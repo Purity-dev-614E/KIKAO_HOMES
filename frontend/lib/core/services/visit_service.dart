@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 import '../constants/appEndpoints.dart';
 import '../models/visit_sessions.dart';
 import 'http_client.dart';
@@ -71,12 +73,14 @@ class VisitService {
     try {
       log("VisitService: Preparing to create visit session with data: ${jsonEncode(visitSession.toJson())}");
       
-      // Check if we have a valid Supabase session
+      // Check if we have a valid Supabase session - but don't require it for visitor registration
       final session = _client.supabase.auth.currentSession;
       log("VisitService: Current Supabase session: ${session != null ? 'Valid' : 'Not authenticated'}");
       
-      final response = await _client.post(
-        AppEndpoints().submitVisit,
+      // For visitor registration, we don't need authentication
+      final response = await http.post(
+        Uri.parse(AppEndpoints().submitVisit),
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode(visitSession.toJson()),
       );
 
@@ -100,6 +104,18 @@ class VisitService {
       } else {
         log("VisitService: Failed to create visit session: ${response.statusCode}");
         log("VisitService: Error response: ${response.body}");
+        
+        // Parse error message for better user feedback
+        String errorMessage = 'Failed to create visit session: ${response.statusCode}';
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData['message'] != null) {
+            errorMessage = errorData['message'];
+          }
+        } catch (_) {
+          // If we can't parse the error, use the default message
+        }
+        
         throw Exception('Failed to create visit session: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {

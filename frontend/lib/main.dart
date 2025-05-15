@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:kikao_homes/screens/admin/settings.dart';
 import 'package:kikao_homes/screens/admin/user_management.dart';
-import 'package:kikao_homes/screens/resident/visitor_approval.dart';
 import 'package:provider/provider.dart';
 import 'package:kikao_homes/screens/auth/login_screen.dart';
 import 'package:kikao_homes/screens/auth/password_reset.dart';
@@ -25,6 +24,7 @@ import 'core/services/notification_service.dart';
 import 'core/providers/authProvider.dart';
 import 'core/providers/settings_provider.dart';
 import 'core/providers/visit_provider.dart';
+import '/screens/resident/visitor_approval_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -213,16 +213,10 @@ class MyApp extends StatelessWidget {
             case '/visitor_history':
               return MaterialPageRoute(builder: (_) => const VisitorHistoryScreen());
             case '/visitor_approval':
-              final args = settings.arguments as Map<String, dynamic>?;
-              if (args == null || !args.containsKey('visitorData')) {
-                return MaterialPageRoute(
-                  builder: (_) => const Scaffold(
-                    body: Center(child: Text('Visitor data is required')),
-                  ),
-                );
-              }
+              // We'll handle the argument validation in the VisitorApprovalScreen
               return MaterialPageRoute(
-                builder: (_) => VisitorApproval(visitorData: args['visitorData']),
+                builder: (_) => const VisitorApprovalScreen(),
+                settings: settings, // Pass the route settings to preserve arguments
               );
             case '/visitors/registration':
               return MaterialPageRoute(builder: (_) => const VisitorRegistrationScreen());

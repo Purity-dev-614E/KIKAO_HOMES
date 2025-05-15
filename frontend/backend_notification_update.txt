@@ -1,0 +1,124 @@
+## Suggested Backend Notification Update
+
+After analyzing your current backend code for the `/createnotification` endpoint, I've identified that the notification payload only includes the notification type:
+
+```typescript
+body: JSON.stringify({
+  to: profile.device_token,
+  notification: {
+    title: "Kikao Homes",
+    body: message
+  },
+  data: {
+    type
+  }
+})
+```
+
+This minimal data makes it difficult for your app to know which specific visitor needs approval when a notification is tapped.
+
+### Recommended Backend Changes
+
+Here's how you can enhance the notification payload to include more useful information:
+
+```typescript
+// Send the push notification using FCM
+const pushRes = await fetch("https://fcm.googleapis.com/fcm/send", {
+  method: "POST",
+  headers: {
+    "Authorization": `key=${Deno.env.get("FCM_SERVER_KEY")}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    to: profile.device_token,
+    notification: {
+      title: "Kikao Homes",
+      body: message
+    },
+    data: {
+      type,
+      notification_id: typedNotification.id,  // Include the notification ID
+      // If this is a visitor notification and you have visitor_id available
+      ...(type === 'visitor' && visitor_id ? { visitor_id } : {})
+    }
+  })
+});
+```
+
+### Implementation Options
+
+#### Option 1: Include Notification ID
+
+The simplest change is to include the notification ID in the payload:
+
+```typescript
+data: {
+  type,
+  notification_id: typedNotification.id
+}
+```
+
+This allows your app to fetch the specific notification that was tapped, which can then lead to the relevant visitor data.
+
+#### Option 2: Include Visitor ID (if available)
+
+If your notification creation endpoint has access to the visitor ID:
+
+```typescript
+// Example: If your endpoint receives visitor_id as part of the request
+const { user_id, message, type, visitor_id } = await req.json();
+
+// Then include it in the notification payload
+data: {
+  type,
+  notification_id: typedNotification.id,
+  ...(visitor_id ? { visitor_id } : {})
+}
+```
+
+#### Option 3: Fetch Visitor Data Before Sending Notification
+
+For a more comprehensive solution, you could fetch visitor data before sending the notification:
+
+```typescript
+// If this is a visitor notification and you have a visitor_id
+let visitorData = null;
+if (type === 'visitor' && visitor_id) {
+  const { data, error } = await supabase
+    .from("visitors")
+    .select("id, name, phone, purpose")
+    .eq("id", visitor_id)
+    .single();
+    
+  if (!error) {
+    visitorData = data;
+  }
+}
+
+// Then include relevant visitor data in the notification
+body: JSON.stringify({
+  to: profile.device_token,
+  notification: {
+    title: "Kikao Homes",
+    body: message
+  },
+  data: {
+    type,
+    notification_id: typedNotification.id,
+    ...(visitorData ? {
+      visitor_id: visitorData.id,
+      visitor_name: visitorData.name,
+      visitor_phone: visitorData.phone,
+      visitor_purpose: visitorData.purpose
+    } : {})
+  }
+})
+```
+
+### Benefits of Enhanced Notification Payload
+
+1. **Direct Navigation**: Your app can navigate directly to the specific visitor approval screen
+2. **Better User Experience**: Users see the relevant visitor information immediately
+3. **Reduced Database Queries**: Your app doesn't need to guess which visitor to show
+
+These changes will significantly improve the notification handling in your app while requiring minimal changes to your existing backend code.
