@@ -207,11 +207,52 @@ class _VisitorApprovalScreenState extends State<VisitorApprovalScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Visitor Approval'),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        centerTitle: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading visitor details...', 
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
           : _errorMessage != null
-              ? Center(child: Text(_errorMessage!))
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 64, color: Colors.red),
+                      SizedBox(height: 16),
+                      Text(
+                        'Error',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          _errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text('Go Back'),
+                      ),
+                    ],
+                  ),
+                )
               : _buildVisitorApprovalContent(),
     );
   }
@@ -222,65 +263,171 @@ class _VisitorApprovalScreenState extends State<VisitorApprovalScreen> {
     final visitorPhone = _visitorData!['visitor_phone'] ?? _visitorData!['phone'] ?? 'Unknown';
     final visitPurpose = _visitorData!['visit_purpose'] ?? _visitorData!['purpose'] ?? 'Unknown';
     final visitTime = _visitorData!['visit_time'] ?? _visitorData!['time'] ?? 'Unknown';
+    final nationalId = _visitorData!['national_id'] ?? '';
+    final unitNumber = _visitorData!['unit_number'] ?? '';
     
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return SingleChildScrollView(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Visitor Details',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          // Header with visitor avatar
+          Container(
+            color: Theme.of(context).colorScheme.primary,
+            padding: const EdgeInsets.only(bottom: 30, left: 20, right: 20),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white.withOpacity(0.9),
+                  child: Text(
+                    visitorName.isNotEmpty ? visitorName[0].toUpperCase() : '?',
+                    style: TextStyle(
+                      fontSize: 40, 
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  visitorName,
+                  style: const TextStyle(
+                    fontSize: 24, 
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Waiting for your approval',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
-          _buildInfoRow('Name', visitorName),
-          _buildInfoRow('Phone', visitorPhone),
-          _buildInfoRow('Purpose', visitPurpose),
-          _buildInfoRow('Time', visitTime),
-          const SizedBox(height: 40),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () => _approveVisitor(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+          
+          // Visitor details card
+          Container(
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
-                child: const Text('Approve', style: TextStyle(fontSize: 16)),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Visitor Details',
+                    style: TextStyle(
+                      fontSize: 18, 
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const Divider(height: 30),
+                  _buildInfoRowImproved(Icons.person, 'Name', visitorName),
+                  _buildInfoRowImproved(Icons.phone, 'Phone', visitorPhone),
+                  _buildInfoRowImproved(Icons.home, 'Unit', unitNumber),
+                  _buildInfoRowImproved(Icons.description, 'Purpose', visitPurpose),
+                  _buildInfoRowImproved(Icons.access_time, 'Time', visitTime),
+                  if (nationalId.isNotEmpty)
+                    _buildInfoRowImproved(Icons.badge, 'ID Number', nationalId),
+                ],
               ),
-              ElevatedButton(
-                onPressed: () => _denyVisitor(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+            ),
+          ),
+          
+          // Action buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _approveVisitor(),
+                  icon: const Icon(Icons.check_circle),
+                  label: const Text('APPROVE VISITOR'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                 ),
-                child: const Text('Deny', style: TextStyle(fontSize: 16)),
-              ),
-            ],
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => _denyVisitor(),
+                  icon: const Icon(Icons.cancel),
+                  label: const Text('DENY VISITOR'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRowImproved(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
+          Icon(icon, size: 22, color: Theme.of(context).colorScheme.primary.withOpacity(0.7)),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -289,11 +436,47 @@ class _VisitorApprovalScreenState extends State<VisitorApprovalScreen> {
   }
 
   Future<void> _approveVisitor() async {
+    // Show confirmation dialog
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Approve Visitor'),
+        content: const Text('Are you sure you want to approve this visitor?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('CANCEL'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('APPROVE'),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirm != true) return;
+    
+    // Show loading overlay
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ),
+      ),
+    );
+    
     try {
-      setState(() {
-        _isLoading = true;
-      });
-      
       // Get the visitor ID
       final visitorId = _visitorData!['visitor_id'] ?? _visitorData!['id'];
       if (visitorId == null || visitorId.isEmpty) {
@@ -304,14 +487,58 @@ class _VisitorApprovalScreenState extends State<VisitorApprovalScreen> {
       
       // Update the visitor status in the database
       await Supabase.instance.client
-          .from('visit_sessions')  // Use visit_sessions table instead of visitors
+          .from('visit_sessions')
           .update({'status': 'approved'})
           .eq('id', visitorId);
       
-      // Show success message
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+      
+      // Show success message and animation
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Visitor approved successfully')),
+        // Show success animation
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 70,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Visitor Approved',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'The visitor has been approved successfully.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 45),
+                    ),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
         
         // Navigate back to visitor history
@@ -319,23 +546,71 @@ class _VisitorApprovalScreenState extends State<VisitorApprovalScreen> {
       }
     } catch (e) {
       print("Error approving visitor: $e");
+      
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+      
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error approving visitor: $e')),
+        // Show error dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to approve visitor: ${e.toString()}'),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }
 
   Future<void> _denyVisitor() async {
+    // Show confirmation dialog
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Deny Visitor'),
+        content: const Text('Are you sure you want to deny this visitor?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('CANCEL'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('DENY'),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirm != true) return;
+    
+    // Show loading overlay
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ),
+      ),
+    );
+    
     try {
-      setState(() {
-        _isLoading = true;
-      });
-      
       // Get the visitor ID
       final visitorId = _visitorData!['visitor_id'] ?? _visitorData!['id'];
       if (visitorId == null || visitorId.isEmpty) {
@@ -346,14 +621,58 @@ class _VisitorApprovalScreenState extends State<VisitorApprovalScreen> {
       
       // Update the visitor status in the database
       await Supabase.instance.client
-          .from('visit_sessions')  // Use visit_sessions table instead of visitors
+          .from('visit_sessions')
           .update({'status': 'rejected'})
           .eq('id', visitorId);
       
-      // Show success message
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+      
+      // Show success message and animation
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Visitor denied')),
+        // Show success animation
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.cancel,
+                    color: Colors.red,
+                    size: 70,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Visitor Denied',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'The visitor has been denied successfully.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 45),
+                    ),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
         
         // Navigate back to visitor history
@@ -361,13 +680,25 @@ class _VisitorApprovalScreenState extends State<VisitorApprovalScreen> {
       }
     } catch (e) {
       print("Error denying visitor: $e");
+      
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+      
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error denying visitor: $e')),
+        // Show error dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to deny visitor: ${e.toString()}'),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }
