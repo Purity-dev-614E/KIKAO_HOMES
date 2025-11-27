@@ -9,14 +9,12 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-// Class to represent a file in web environment
 class WebFile {
   final Uint8List bytes;
   final String name;
   
   WebFile(this.bytes, this.name);
   
-  // Methods to mimic File class behavior
   Future<Uint8List> readAsBytes() async {
     return bytes;
   }
@@ -24,7 +22,6 @@ class WebFile {
 
 class QRCodeGenerator {
   
-  // Generate QR code and return either a File (mobile) or WebFile (web)
   static Future<dynamic> generateQRCode(String data, String fileName) async {
     try {
       final qr = QrPainter(
@@ -42,10 +39,8 @@ class QRCodeGenerator {
       final pngBytes = byteData!.buffer.asUint8List();
 
       if (kIsWeb) {
-        // For web, return a WebFile object
         return WebFile(pngBytes, '$fileName.png');
       } else {
-        // For mobile, use File system
         final directory = await getApplicationDocumentsDirectory();
         final file = File('${directory.path}/$fileName.png');
         await file.writeAsBytes(pngBytes);
@@ -57,17 +52,15 @@ class QRCodeGenerator {
     }
   }
 
-  // Generate QR code as PDF
+
   static Future<dynamic> generateQRCodePDF(String data, String fileName, String title) async {
     try {
-      // First generate the QR code image
+      
       final qrFile = await generateQRCode(data, fileName);
       final Uint8List qrImage = await qrFile.readAsBytes();
       
-      // Create a PDF document
       final pdf = pw.Document();
       
-      // Add a page with the QR code
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
@@ -106,14 +99,12 @@ class QRCodeGenerator {
         ),
       );
       
-      // Save the PDF
+     
       final pdfBytes = await pdf.save();
       
       if (kIsWeb) {
-        // For web, return a WebFile object
         return WebFile(pdfBytes, '$fileName.pdf');
       } else {
-        // For mobile, use File system
         final directory = await getApplicationDocumentsDirectory();
         final pdfFile = File('${directory.path}/$fileName.pdf');
         await pdfFile.writeAsBytes(pdfBytes);
@@ -125,7 +116,6 @@ class QRCodeGenerator {
     }
   }
 
-  // Generate Entry QR code (for visitor registration)
   static Future<Map<String, dynamic>> generateEntryQR() async {
     final pngFile = await generateQRCode(
       'https://kikaohomes.vercel.app/visitors/registration',
@@ -144,7 +134,6 @@ class QRCodeGenerator {
     };
   }
 
-  // Generate Exit QR code (for visitor checkout)
   static Future<Map<String, dynamic>> generateExitQR() async {
     final pngFile = await generateQRCode(
       'https://kikaohomes.vercel.app/visitors/checkout',
@@ -163,14 +152,14 @@ class QRCodeGenerator {
     };
   }
   
-  // Print PDF file
+  
   static Future<void> printPDF(dynamic pdfFile) async {
     await Printing.layoutPdf(
       onLayout: (_) async => await pdfFile.readAsBytes(),
     );
   }
   
-  // Share PDF file
+
   static Future<void> sharePDF(dynamic pdfFile) async {
     final bytes = await pdfFile.readAsBytes();
     String filename;
